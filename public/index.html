@@ -1,150 +1,118 @@
 <!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>庫存盤點系統</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        input[type="number"], input[type="text"], input[type="password"], input[type="date"] { width: 100%; }
-        .modal {
-            display: none; /* 隐藏模态框 */
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background-color: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-        }
-        .button { margin-top: 10px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chocolate+Classical+Sans&display=swap" rel="stylesheet">
+  <title>庫存盤點系統</title>
+
+  <style>
+    font-family: "Chocolate Classical Sans",
+    sans-serif;
+
+    body {
+      font-weight: 400;
+      font-style: normal;
+      height: auto;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #f9f9f9;
+    }
+
+    table {
+      background: white;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      text-align: center;
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+
+    td.name {
+      width: 100%;
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    td.spec {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    input[type="number"] {
+      width: 60px;
+      text-align: right;
+    }
+
+    input[type="date"] {
+      width: 90px;
+    }
+
+    input.name {
+      width: 50%;
+    }
+
+    input.number {
+      width: 20%;
+    }
+
+    input.unit {
+      width: 10%;
+    }
+
+    .modal {
+      display: none;
+      /* 隐藏模态框 */
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .button {
+      font-family: "Chocolate Classical Sans", sans-serif;
+      margin-top: 10px;
+    }
+
+    p {
+      font-size: 1em;
+    }
+  </style>
 </head>
+
 <body>
-    <h1>庫存盤點系統</h1>
-    <button id="archiveButton">盤點歸檔</button>
   <div id="root"></div>
   <script src="/bundle.js"></script>
-    <div id="archiveModal" class="modal">
-        <div class="modal-content">
-            <h2>盤點歸檔</h2>
-            <label for="year">年份:</label>
-            <input type="number" id="year" min="2000" max="2100" placeholder="輸入年份" required>
-            <label for="month">月份:</label>
-            <input type="number" id="month" min="1" max="12" placeholder="輸入月份" required>
-            <label for="password">管理員密碼:</label>
-            <input type="password" id="password" placeholder="輸入密碼" required>
-            <div>
-                <button class="button" id="confirmButton">存檔</button>
-                <button class="button" id="cancelButton">返回</button>
-            </div>
-        </div>
-    </div>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script> <!-- 确保引入 axios -->
-
-<script>
-    const modal = document.getElementById('archiveModal');
-    const archiveButton = document.getElementById('archiveButton');
-    const confirmButton = document.getElementById('confirmButton');
-    const cancelButton = document.getElementById('cancelButton');
-
-    // 打开模态框
-    archiveButton.onclick = function() {
-        modal.style.display = 'flex';
-    };
-
-    // Handles the archiving submission
-    const handleArchiveSubmit = async () => {
-        const year = document.getElementById('year').value;
-        const month = document.getElementById('month').value.padStart(2, '0'); // Formatting month
-
-        const password = document.getElementById('password').value;
-
-        if (!year || !month || !password) {
-            alert('请填写所有字段！');
-            return;
-        }
-
-        try {
-            const response = await axios.post('https://inventory.edc-pws.com/api/archive', {
-                year,
-                month,
-                password
-            });
-
-            alert('归档成功：' + JSON.stringify(response.data));
-            modal.style.display = 'none'; // Close modal on success
-        } catch (error) {
-            console.error('归档请求失败:', error);
-            if (error.response) {
-                alert('出错: ' + error.response.data);
-            } else {
-                alert('请求失败:' + error.message);
-            }
-        }
-    };
-
-    // Bind the function to the confirm button click event
-    confirmButton.onclick = handleArchiveSubmit;
-
-    // Close modal actions
-    cancelButton.onclick = function() {
-        modal.style.display = 'none';
-    };
-
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = 'none';
-        }
-    };
-</script>
-
 </body>
+
 </html>
-
-
- <!--   <style>
-		body {
-        font-family: Arial, sans-serif;
-        height: auto;
-        margin: 0 auto;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: #f9f9f9;
-      }
-	  
-        table { background: white;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
-        text-align: center;
-		padding: 20px; 
-		width: 100%; 
-		border-collapse: collapse; 
-		margin: 20px 0; }
-		th { border: 1px solid #ddd; padding: 8px; text-align: center; }
-		td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-		td.name, td.spec { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        input[type="number"]{ width: 60px; text-align: right;}
-		input[type="date"] { width: 100%; }
-        input.name { width: 50%; }
-		input.number { width: 20%; }
-		input.unit { width: 10%; }
-    </style>
-</head>
-<body>
-
-</body>
-</html>
- -->
