@@ -158,8 +158,8 @@ function App() {
           {products.map(product => (
             <tr key={product.商品編號}>
               <td>{product.商品編號}</td>
-              <td class = 'name'>{product.商品名稱}</td>
-              <td class = 'spec'>{product.規格 || '未設定'}</td>
+              <td className = 'name'>{product.商品名稱}</td>
+              <td className = 'spec'>{product.規格 || '未設定'}</td>
               <td>
                 <input type="number" value={product.數量} onChange={(e) =>handleQuantityChange(product.商品編號, +e.target.value)} required /></td>
               <td>{product.單位}</td>
@@ -176,7 +176,7 @@ function App() {
       {isModalOpen && (
         <div style={modalStyles}>
           <h2>新增品项</h2>
-		  <input class = 'name'
+		  <input className = 'name'
             name="商品名稱"            
 			placeholder="商品名稱"
             value={newProduct.商品名稱}
@@ -184,19 +184,19 @@ function App() {
 			autofocus required
           />　
           <input
-            class = 'number'
+            className = 'number'
             name="數量"
             placeholder="盤點量"
             onChange={handleInputChange} required
           />　
-          <input class = 'unit'
+          <input className = 'unit'
             name="單位"
             placeholder="單位"
             value={newProduct.單位}
             onChange={handleInputChange} required
           />
 		  <br></br>
-          到期日：<input class = 'date'
+          到期日：<input className = 'date'
             type="date"
             name="到期日"
             value={newProduct.到期日}
