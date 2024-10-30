@@ -1,5 +1,8 @@
-import React, { useEffect, useState } from 'react';
+//App.js
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
+import { saveAs } from 'file-saver';
+import ExcelJS from 'exceljs';
 import io from 'socket.io-client';
 
 const socket = io('https://inventory.edc-pws.com'); // 根据需要可能更改
@@ -12,9 +15,9 @@ const modalStyles = {
   position: 'fixed',
   background: 'white',
   top: '30%',
-  left: '40%',
-  transform: 'translate(-30%, -50%)',
-  padding: '10px',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  padding: '20px',
   borderRadius: '8px',
   boxShadow: '0 0 50px rgba(0, 0, 0, 0.3)',
   zIndex: 1000, // 确保弹窗在其他内容上方
@@ -28,6 +31,26 @@ const overlayStyles = {
   backgroundColor: 'rgba(0, 0, 0, 0.5)',
   zIndex: 1000,
 };
+
+const modalStylesGuide={
+  lineHeight: '1.8',
+  display: 'flex',
+  justifyContent: 'center',
+    left: '8.5%',
+
+  position: 'fixed',
+  background: 'white',
+	  maxWidth: '657px',
+	maxHeight: '70%',
+   overflowY: 'auto', // 允許垂直滾動
+   backgroundColor: 'white',
+    border: '1px solid #ccc',
+    padding: '8px',
+    borderRadius: '8px',
+    boxShadow: '0 0 50px rgba(0, 0, 0, 0.3)',
+    zIndex: 1000,
+    transform: 'translateY(10%)' // 垂直稍微下移，防止與頂部條件放在一起
+};
 const App = () => {
 
   const [products, setProducts] = useState([]);
@@ -35,9 +58,22 @@ const App = () => {
   const [newMessage, setNewMessage] = useState(''); // 用於存儲新數據提示內容
   const [showToast, setShowToast] = useState(false); // 控制提示顯示
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
-  const [hoveredProduct, setHoveredProduct] = useState(null);
+  const [showGuide, setShowGuide] = useState(false); // 控制顯示說明手冊
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
+  const [hoveredProduct, setHoveredProduct] = useState(null); // 懸停的商品編號
+  const [initialStock, setInitialStock] = useState(''); // 用於顯示的期初庫存量
+  const [currentSpec, setCurrentSpec] = useState(''); // 用於顯示的規格
+  const [showOfflineWarning, setShowOfflineWarning] = useState(false);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const inputRefs = useRef([]); // 用於儲存每個輸入框的引用
+  const [year, setYear] = useState('');
+  const [month, setMonth] = useState('');
+  const [userCount, setUserCount] = useState(0); // 用於存儲線上人數
+  const [initialUnit, setInitialUnit] = useState(''); // 用於存儲期初庫存量
+  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 }); // 記錄工具提示的位置
+  const [password, setPassword] = useState('');
   const [newProduct, setNewProduct] = useState({ // 用于新產品的初始状态
     商品編號: '',
     商品名稱: '',
@@ -46,21 +82,19 @@ const App = () => {
     單位: '',
     到期日: '',
   });
-  const [year, setYear] = useState('');
-  const [month, setMonth] = useState('');
-  const [userCount, setUserCount] = useState(0); // 用於存儲線上人數
-  const [initialStock, setInitialStock] = useState(''); // 用於存儲期初庫存量
-  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 }); // 記錄工具提示的位置
-  const [password, setPassword] = useState('');
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get('https://inventory.edc-pws.com/api/products');
         setProducts(response.data);
-        setConnectionStatus('連接成功');
+        setConnectionStatus('連接成功 ✔');
+
       } catch (error) {
         console.error("獲取產品時出錯:", error);
-        setConnectionStatus('失去連線');
+        setConnectionStatus('失去連線 ❌');
+   
+
       }
     };
 
@@ -69,7 +103,7 @@ const App = () => {
         const response = await axios.get('https://inventory.edc-pws.com/archive/originaldata');
         const initialStockMap = {};
         response.data.forEach(item => {
-          initialStockMap[item.商品名稱] = item.數量; // 儲存成物件以便查詢
+          initialStockMap[item.商品編號] = item.數量; // 儲存成物件以便查詢
         });
         setInitialStockData(initialStockMap);
       } catch (error) {
@@ -87,7 +121,7 @@ const App = () => {
 
     // 设置 socket 监听和事件处理
     socket.on('連接成功', () => {
-      setConnectionStatus('連接成功');
+      setConnectionStatus('連接成功1');
     });
 
     socket.on('失去連線', () => {
@@ -118,6 +152,46 @@ const App = () => {
       socket.off('updateUserCount');
     };
   }, []);
+
+
+  const handleBlur = () => {
+    setHoveredProduct(null);
+    setInitialStock('');
+  };
+
+
+const exportToExcel = async (data) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Products');
+
+  // 添加表頭
+  worksheet.columns = [
+    { header: '商品編號', key: '商品編號', width: 20 },
+    { header: '商品名稱', key: '商品名稱', width: 30 },
+    { header: '規格', key: '規格', width: 15 },
+    { header: '數量', key: '數量', width: 10 },
+    { header: '單位', key: '單位', width: 10 },
+    { header: '到期日', key: '到期日', width: 15 }
+  ];
+
+  // 添加數據
+  data.forEach(item => {
+    worksheet.addRow(item);
+  });
+
+  // 導出 Excel 文件
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/octet-stream' });
+  saveAs(blob, 'products.xlsx');
+};
+
+
+
+
+  const handleExport = () => {
+    exportToExcel(products);
+  };
+
 
   const updateQuantity = async (productCode, quantity) => {
     try {
@@ -152,28 +226,20 @@ const App = () => {
     setProducts(updatedProducts);
     updateExpiryDate(productCode, expiryDate);
   };
-  const handleMouseEnter = (productCode, e) => {
-    setHoveredProduct(productCode); // 設置當前懸停的商品編號
-    setInitialStock(initialStockData[productCode] || '未設定'); // 查找對應的期初庫存
-    const rect = e.currentTarget.getBoundingClientRect(); // 獲取當前商品行的邊界	
-    setTooltipPosition({ top: e.clientY + 10, left: e.clientX + 10 }); // 更新工具提示位置
-  };
-
-  const handleMouseLeave = () => {
-    setHoveredProduct(null);
-    setInitialStock('');
-  };
 
   // 開啟新增產品的模態框，並關閉盤點歸檔的模態框
   const openProductModal = () => {
     setIsModalOpen(true);
     setIsArchiveModalOpen(false);
+	setShowGuide(false);
   };
 
   // 開啟盤點歸檔的模態框，並關閉新增產品的模態框
   const openArchiveModal = () => {
     setIsArchiveModalOpen(true);
     setIsModalOpen(false);
+    setShowGuide(false);
+	
   };
   const handleArchiveSubmit = async () => {
     if (!year || !month || !password) {
@@ -185,7 +251,7 @@ const App = () => {
       const response = await axios.post('https://inventory.edc-pws.com/api/archive', {
         year, month, password
       });
-
+	  exportToExcel(products); // 在盤點歸檔時同樣導出
       alert('歸檔成功：' + JSON.stringify(response.data));
       setIsArchiveModalOpen(false);
     } catch (error) {
@@ -223,77 +289,99 @@ const App = () => {
     }
   };
 
+  const handleMouseEnter = (product, e) => {
+    setHoveredProduct(product.商品編號); // 設置當前懸停的商品編號
+    setInitialStock(initialStockData[product.商品編號] || '未設定'); // 查找對應的期初庫存
+    setCurrentSpec(product.規格); // 設置當前商品的規格
+    const rect = e.currentTarget.getBoundingClientRect(); // 獲取當前商品行的邊界
+
+    setTooltipPosition({ top: e.clientY + 10, left: e.clientX + 10 }); // 更新工具提示位置
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredProduct(null); // 清除懸停商品
+    setInitialStock(''); // 清除期初庫存數據
+    setCurrentSpec(''); // 清除規格數據
+  };
+  // 控制說明手冊的顯示與隱藏
+  const toggleGuide = () => {
+    setShowGuide(true);
+    setIsModalOpen(false);
+    setIsArchiveModalOpen(false);
+  };
+
   return (
     <div>
 
       {/* 導航條 */}
-      <nav style={{
-        position: 'fixed', top: 0, left: 0, right: 0, padding: '10px', display: 'flex',
-        justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f4f4f4',
-        borderBottom: '1px solid #ccc'
-      }}>
-        <h1 style={{ margin: 0, display: 'inline-block' }}>庫存盤點系統</h1>
-        <div style={{ margin: 0 }}>
-          <label>伺服器: <strong>{connectionStatus}</strong></label><br />
-          <label>線上使用者: <strong>{userCount}</strong>人</label>
+      <nav style={{position: 'fixed', top: 0, left: 0, right: 0, padding: '10px', display: 'flex',	justifyContent: 'space-around',	alignItems: 'flex-center', backgroundColor: '#f4f4f4', borderBottom: '1px solid #ccc'}}>
+        
+        <div style={{ margin: 0, textAlign: 'left' }}>
+          <label>伺　服　器：<strong>{connectionStatus}</strong></label><br />
+          <label>線上使用者：<strong>{userCount}</strong>人</label>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <button style={{ fontFamily: 'Chocolate Classical Sans', marginRight: '10px' }} onClick={openArchiveModal}>盤點歸檔</button>
-          <button style={{ fontFamily: 'Chocolate Classical Sans', marginRight: '10px' }} onClick={openProductModal}>品項缺漏</button>
-        </div>
+		<div>
+        <h1 style={{ margin: 0, fontSize: '2em',  display: 'inline-block' }}>庫存盤點系統</h1>
+		</div>
+		<div>
+			<button style={{ fontFamily: 'Chocolate Classical Sans',}} onClick={toggleGuide}>說明</button>
+          <button style={{ fontFamily: 'Chocolate Classical Sans',}} onClick={openArchiveModal}>歸檔</button>
+			<button style={{ fontFamily: 'Chocolate Classical Sans',}} onClick={openProductModal}>缺漏</button><br />
+			<button style={{ fontFamily: 'Chocolate Classical Sans'}} onClick={handleExport}>導出 Excel</button>
+		     
+		</div>
       </nav>
-      <div style={{ paddingTop: '60px' }}>
-
+      <div style={{ paddingTop: '60px' }}>      </div>
+      
         <table>
           <thead>
             <tr>
               <th>商品編號</th>
               <th>商品名稱</th>
-              <th>數量</th>
+              <th style={{width: '60px'}}>數量</th>
               <th>單位</th>
               <th>到期日</th>
             </tr>
           </thead>
           <tbody>
-            {products.map(product => (
-              <tr key={product.商品編號}>
+          {products.map((product, index) => (
+            <tr key={product.商品編號}>
                 <td>{product.商品編號}</td>
-                <td className='name' onMouseEnter={(e) => handleMouseEnter(product.商品名稱, e)}
-                  onMouseLeave={handleMouseLeave}
-                  style={{ cursor: 'pointer' }} // 改變鼠標指標為手型
-                >{product.商品名稱}</td>
-                <td><input type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} required />
+                <td className='name' onMouseEnter={(e) => handleMouseEnter(product, e)} onMouseLeave={handleMouseLeave} style={{ cursor: 'pointer' }} >{product.商品名稱}</td>
+                <td  style={{width: '60px'}}><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyPress={(e) => handleKeyPress(e, index)}
+                  data-index={index} required />
                 </td>
                 <td>{product.單位}</td>
-                <td><input type="date" value={product.到期日 ? new Date(product.到期日).toISOString().split('T')[0] : ""} onChange={(e) => handleExpiryDateChange(product.商品編號, e.target.value)} />
+                <td><input className='date' type="date" value={product.到期日 ? new Date(product.到期日).toISOString().split('T')[0] : ""} onChange={(e) => handleExpiryDateChange(product.商品編號, e.target.value)} />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
       {/* 顯示工具提示 */}
       {hoveredProduct && (
-        <div style={{ 
-		fontSize:'12px', 
-		position: 'fixed', 
-		backgroundColor: 'white', 
-		border: '1px solid #ccc', 
-		padding: '5px', borderRadius: '5px', 
-		zIndex: 1000, 
-		top: tooltipPosition.top, // 使用游標的 Y 坐標 
-        left: tooltipPosition.left, // 使用游標的 X坐標 
-        pointerEvents: 'none', // 確保工具提示不干擾其他元素的互動 
+        <div style={{
+		  textAlign: 'left',
+		  fontSize: '12px',
+          position: 'fixed',
+          backgroundColor: 'white',
+          border: '1px solid #ccc',
+          padding: '5px',
+          borderRadius: '5px',
+          zIndex: 1000,
+          top: tooltipPosition.top,
+          left: tooltipPosition.left,
         }}>
-          商品名稱: {hoveredProduct}<br />
-          期初庫存量: {initialStock}
+          期初庫存量：{initialStock}<br />
+          規格：{currentSpec} {/* 顯示規格 */}
+
         </div>
       )}
 	  {/* 短暫提示 */}
       {showToast && (
         <div style={{
           position: 'fixed',
-          bottom: '20px',
+          top: '20px',
           right: '20px',
           backgroundColor: '#4caf50', // 可根據需要更改顏色
           color: 'white',
@@ -306,21 +394,106 @@ const App = () => {
         </div>
       )}
       {/* 弹窗组件 */}
+	  {/* 顯示說明手冊的內容 */}
+      {showGuide && (
+	  <div style={overlayStyles} onClick={() => setShowGuide(false)}>
+<div style={modalStylesGuide} onClick={(e) => e.stopPropagation()}>
+<div className="modal-content">
+	   	<h2>系統介紹</h2>
+		 <p>庫存盤點系統是一個用於查詢和管理庫存商品的 Web 應用程序。通過該系統，使用者可以輕鬆查看商品信息、更新庫存數量、導出報表以及進行盤點歸檔。   </p>
+		<h2>功能概述</h2>
+<ul style={{textAlign: 'left'}}>
+<li><strong>商品管理</strong>：查看所有庫存商品的詳細信息，包括商品編號、名稱、規格、庫存數量等。</li>
+<li><strong>更新庫存數量</strong>：在數量欄位輸入新的庫存量，並支持 <code>Enter</code> 鍵以快速跳至下一個輸入框。</li>
+<li><strong>瀏覽數據</strong>：可顯示商品的期初庫存量、進貨規格。</li>
+<li><strong>導出數據</strong>：用戶可以匯出當前的庫存資料到 Excel 文件。</li>
+<li><strong>歷史資料</strong>：將盤點數據保留以便月底時生成期初庫存。</li>
+</ul>
+<h2>如何使用</h2>
+<ol style={{textAlign: 'left'}}>
+<li><p><strong>登錄系統</strong>：進入系統首頁，輸入您的用戶憑證進行登錄。</p>
+</li>
+<li><p><strong>查看商品規格和顯示期初庫存</strong>：</p>
+<ul>
+<li>系統將顯示商品列表，用戶可以查看各項商品的詳情。</li>
+<li>輕觸欲查詢商品名稱時，即可以顯示該商品的單位規格。</li>
+<li>輕觸欲查詢商品名稱時，即可以顯示該商品的期初庫存量。</li>
+
+</ul>
+</li>
+<li><p><strong>更新商品庫存</strong>：</p>
+<ul>
+<li>在數量欄位中直接輸入新的庫存數量，完成後按 <code>Enter</code> 鍵自動跳到下一個商品的數量輸入框。</li>
+</ul>
+</li>
+<li><p><strong>導出數據</strong>：</p>
+<ul>
+<li>輕觸“導出 Excel”按鈕，將當前商品庫存資料保存為 <code>.xls</code> 文件。</li>
+</ul>
+</li>
+<li><p><strong>進行盤點歸檔</strong>：</p>
+<ul>
+<li>輕觸將結束本次盤點。須驗證管理員密碼以完成歸檔。</li>
+</ul>
+</li>
+</ol>
+<h2>多人同步功能</h2>
+<h4>系統支持多人同時線上作業，數據將實時推送至所有用戶端使用</h4>
+<ul style={{textAlign: 'left'}}>
+<li>通過 WebSocket 技術（socket.io）來實現即時數據更新。</li>
+<li>當一名用戶更新某個商品的庫存，其他連接的用戶將會即時收到更新的通知，並可以看到最新的庫存信息。</li>
+<li>在伺服器斷線時，系統會顯示一個覆蓋整個畫面的半透明消息，提醒用戶網絡連接問題及解決辦法，包括聯繫管理員的建議。</li>
+</ul>
+<h2>常見問題</h2>
+<ol style={{textAlign: 'left'}}>
+<li><p><strong>我如何導出產品庫存數據？</strong></p>
+<ul>
+<li>點擊“導出 Excel”按鈕即可下載當前庫存數據。</li>
+</ul>
+</li>
+<li><p><strong>盤點歸檔時出現錯誤提示，該怎麼辦？</strong></p>
+<ul>
+<li>確保您已正確輸入所有字段，包括年份、月份和管理員密碼。</li>
+</ul>
+</li>
+<li><p><strong>為什麼我的數量更新不會被保存？</strong></p>
+<ul>
+<li>確保您在更新庫存數量後按下 <code>Enter</code> 鍵。</li>
+</ul>
+</li>
+<li><p><strong>如何查看特定商品的期初庫存？</strong></p>
+<ul>
+<li>將鼠標懸停在商品編號上，即可查看該商品的期初庫存。</li>
+</ul>
+</li>
+</ol>
+<div>
+<label><button onClick={() => setShowGuide(false)}>關閉</button></label>
+
+</div>
+<br />
+</div>
+</div></div>
+      )}
+ 
+	  
       {isModalOpen && (
         <div style={overlayStyles} onClick={() => setIsModalOpen(false)}>
           <div style={modalStyles} onClick={(e) => e.stopPropagation()}>
             <div>
               <h2>新增品项</h2>
-              <input name="商品名稱" placeholder="商品名稱" value={newProduct.商品名稱} onChange={handleInputChange} autoFocus required />
-              <input name="數量" type="number" placeholder="盤點量" value={newProduct.數量} onChange={handleInputChange} required />
-              <input name="單位" placeholder="單位" value={newProduct.單位} onChange={handleInputChange} />
-              <br />
-              <label>到期日：</label>
+			  <div style={{textAlign: 'left'}}>
+			  <label>商品名稱：</label><input name="商品名稱" placeholder="商品名稱" value={newProduct.商品名稱} onChange={handleInputChange} autoFocus required />
+              <br /><label>商品數量：</label><input name="數量" type="number" placeholder="盤點量" value={newProduct.數量} onChange={handleInputChange} required />
+              <br /><label>商品單位：</label><input name="單位" placeholder="單位" value={newProduct.單位} onChange={handleInputChange} />
+              <br /><label>商品校期：</label>
               <input name="到期日" type="date" value={newProduct.到期日} onChange={handleInputChange} />
               <div>
                 <button onClick={handleAddProduct}>送出</button>
                 <button onClick={() => setIsModalOpen(false)}>關閉</button>
               </div>
+			 </div>
+
             </div>
           </div>
         </div>
@@ -345,7 +518,8 @@ const App = () => {
                 <input style={{ width: '145px' }} type="password" value={password} onChange={e => setPassword(e.target.value)} required />
               </label>
               <br />
-              <div>
+              <div>              <br />
+
                 <button onClick={handleArchiveSubmit}>存檔</button>
                 <button onClick={() => setIsArchiveModalOpen(false)}>取消</button>
               </div>
@@ -353,6 +527,21 @@ const App = () => {
           </div>
         </div>
       )}
+<div style={{ paddingTop: '20px' }}>    </div>
+     <footer style={{
+		       
+
+        position: 'fixed',
+        bottom: '0',
+        left: '0',
+        right: '0',
+        textAlign: 'center',
+        padding: '3px',
+        backgroundColor: '#f5f5f5',
+        borderTop: '1px solid #ccc'
+      }}>
+        <p	style={{margin: '0px'}}>© 2024 edc-pws.com. All rights reserved. Special thanks to my assistant for the guidance!</p>
+      </footer>
     </div>
   );
 };
