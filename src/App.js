@@ -5,7 +5,7 @@ import { saveAs } from 'file-saver';
 import ExcelJS from 'exceljs';
 import io from 'socket.io-client';
 
-const socket = io('http://localhost:4000'); // 根据需要可能更改
+const socket = io('https://inventory.edc-pws.com'); // 根据需要可能更改
 
 // 样式定义
 const modalStyles = {
@@ -97,7 +97,7 @@ const App = () => {
 		setLoading(true); // 開始載入，設置狀態
 
       try {
-        const response = await axios.get('http://localhost:4000/api/products');
+        const response = await axios.get('https://inventory.edc-pws.com/api/products');
         setProducts(response.data);
         setConnectionStatus('連接成功 ✔');
         setLoading(false); // 載入完成，更新狀態
@@ -111,7 +111,7 @@ const App = () => {
 
     const fetchInitialStockData = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/archive/originaldata');
+        const response = await axios.get('https://inventory.edc-pws.com/archive/originaldata');
         const initialStockMap = {};
         response.data.forEach(item => {
           initialStockMap[item.商品編號] = item.數量; // 儲存成物件以便查詢
@@ -214,6 +214,15 @@ const App = () => {
     return vendorMatch && layerMatch; // 只顯示符合篩選條件的產品
   });
 
+const handleKeyPress = (event, index) => {
+  if (event.key === 'Enter') {
+    const nextInput = inputRefs.current[index + 1];
+    if (nextInput) {
+      nextInput.focus(); // 將焦點移到下一個輸入框
+    }
+  }
+};
+
 const exportToExcel = async (data) => {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('Products');
@@ -249,7 +258,7 @@ const exportToExcel = async (data) => {
 
   const updateQuantity = async (productCode, quantity) => {
     try {
-      await axios.put(`http://localhost:4000/api/products/${productCode}/quantity`, { 數量: quantity });
+      await axios.put(`https://inventory.edc-pws.com/api/products/${productCode}/quantity`, { 數量: quantity });
     } catch (error) {
       console.error("更新產品時出錯:", error);
     }
@@ -257,7 +266,7 @@ const exportToExcel = async (data) => {
 
   const updateExpiryDate = async (productCode, expiryDate) => {
     try {
-      await axios.put(`http://localhost:4000/api/products/${productCode}/expiryDate`, { 到期日: expiryDate });
+      await axios.put(`https://inventory.edc-pws.com/api/products/${productCode}/expiryDate`, { 到期日: expiryDate });
     } catch (error) {
       console.error("更新到期日時出錯:", error);
     }
@@ -302,7 +311,7 @@ const exportToExcel = async (data) => {
     }
 
     try {
-      const response = await axios.post('http://localhost:4000/api/archive', {
+      const response = await axios.post('https://inventory.edc-pws.com/api/archive', {
         year, month, password
       });
 	  exportToExcel(products); // 在盤點歸檔時同樣導出
@@ -327,7 +336,7 @@ const exportToExcel = async (data) => {
         商品編號: `新 - ${nextNumber}`,
       };
 
-      const response = await axios.post('http://localhost:4000/api/products', newProductWithNumber);
+      const response = await axios.post('https://inventory.edc-pws.com/api/products', newProductWithNumber);
       setProducts([...products, response.data]); // 更新產品列表
       setIsModalOpen(false); // 关闭弹窗
       setNewProduct({
