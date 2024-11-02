@@ -675,7 +675,6 @@ const exportToExcel = async (data) => {
           </div>
         </div>
       )}
-<div style={{ paddingTop: '20px' }}>    </div>
      <footer style={{
 		       
 
