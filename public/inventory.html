@@ -1,0 +1,159 @@
+﻿
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>進銷存系統</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+</head>
+<body>
+    <h1>進銷存系統</h1>
+    <input type="file" id="inventory-input" accept=".xlsx, .xls" placeholder="上傳進銷存" value="進銷存"/>
+    <input type="file" id="stock-input" accept=".xlsx, .xls" placeholder="上傳期初盤點" value="期初盤點" />
+    <input type="file" id="final-stock-input" accept=".xlsx, .xls" placeholder="上傳期末盤點" value="期末盤點" />
+    <input type="file" id="detail-input" accept=".xlsx, .xls" placeholder="上傳進貨明細" value="進貨明細" />
+
+    <button id="import-btn">執行資料匯入</button>
+    <button id="download-btn">下載更新的進銷存</button>
+
+    <div id="output"></div>
+
+    <script>
+        let inventoryData = {
+            total: [], // 存放總表數據
+            purchaseDetails: [] // 存放進貨明細數據
+        };
+
+        // 加載進銷存數據
+        const loadInventoryData = (data) => {
+            const rows = data.slice(2); // 跳過標題行
+            rows.forEach(row => {
+                inventoryData.total.push({
+                    品號: row[0], // 第0欄
+                    保存期限: row[6], // 保存期限
+                    本月進貨: row[7], // 第7欄 本月進貨
+                    期初盤點: Number(row[9]) || 0, // 第9欄
+                    期末盤點: Number(row[10]) || 0, // 第10欄
+                     調出: Number(row[11]) || 0, // 第11欄                     
+                    調入: Number(row[12]) || 0, // 第12欄
+                });
+            });
+        };
+ 
+
+        // 加載期初盤點數據
+        const loadInitialStock = (data) => {
+            const rows = data.slice(1); // 跳過標題行
+            rows.forEach(row => {
+                const itemNumber = row[0]; // 品號
+                const quantity = row[2]; // 數量
+
+                const inventoryItem = inventoryData.total.find(item => item.品號 === itemNumber);
+                if (inventoryItem) {
+                    inventoryItem.期初盤點 = Number(row[]); // 更新
+                }
+            });
+        };
+
+        // 加載期末盤點數據
+        const loadFinalStock = (data) => {
+            const rows = data.slice(1); // 跳過標題行
+            rows.forEach(row => {
+                const itemNumber = row[0]; // 品號
+                const quantity = row[2]; // 數量
+                const date = row[4]; // 數量
+                const inventoryItem = inventoryData.total.find(item => item.品號 === itemNumber);
+                if (inventoryItem) {
+                    inventoryItem.期末盤點 = Number(row[2]); // 更新
+                    inventoryItem.保存期限 = Number(row[4]); // 更新
+
+                }
+            });
+        };
+
+        // 加載當月進貨明細數據
+        const loadCurrentMonthDetail = (data) => {
+            const rows = data.slice(1); // 跳過標題行
+            rows.forEach(row => {
+                const itemNumber = row[2]; // 品號
+                const receivedQuantity = row[9]; // 驗收數量
+
+                let purchaseItem = inventoryData.purchaseDetails.find(item => item.品號 === itemNumber);
+                if (!purchaseItem) {
+                    purchaseItem = { 品號: itemNumber, 驗收數量: 0 };
+                    Data.purchaseDetails.push(purchaseItem); // 新增品號到進貨明細
+                }
+                purchaseItem.驗收數量 = Number(row]); // 更新驗收數量
+            });
+        };
+
+        // 通用上傳函數
+        const uploadFile = (file, callback) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0]; // 取第一個工作表
+                const sheet = workbook.Sheets[sheetName];
+
+                if (sheet) {
+                    const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1 }); // 將工作表轉換為數組
+                    if (sheetData.length > 0) {
+                        callback(sheetData); // 執行對應的處理函數
+                    } else {
+                        console.error('表中沒有數據');
+                    }
+                } else {
+                    console.error('未找到工作表');
+                }
+            };
+
+            reader.readAsArrayBuffer(file); // 讀取文件為二進位數據
+        };
+
+        // 執行資料匯入的按鈕事件
+
+        document.getElementById('import-btn').addEventListener('click', async () => {
+            try {
+                // 為每個文件分別進行處理
+                const inventoryFile = document.getElementById('inventory-input').files[0];
+                const initialStockFile = document.getElementById('stock-input').files[0];
+                const finalStockFile = document.getElementById('final-stock-input').files[0];
+                const currentDetailFile = document.getElementById('detail-input').files[0];
+
+                await processFile(inventoryFile, loadInventoryData);
+                await processFile(initialStockFile, loadInitialStock);
+                await processFile(finalStockFile, loadFinalStock);
+                await processFile(currentDetailFile, loadCurrentMonthDetail);
+
+                // 將結果輸出到頁面上
+                document.getElementById('output').innerText = JSON.stringify(inventoryData, null, 2);
+                alert('所有數據匯入成功！');
+            } catch (error) {
+                alert(`資料匯入失敗: ${error}`);
+            }
+        });
+
+        // 下載更新的進銷存 Excel 文件
+        document.getElementById('download-btn').addEventListener('click', () => {
+            const summaryData = inventoryData.total.map(item => ({
+                品號: item.品號,
+                期初盤點: item.期初盤點,
+                期末盤點: item.期末盤點,
+                調入: item.調入,
+                調出: item.調出,
+            }));
+
+            const newWorkbook = XLSX.utils.book_new();
+            const summaryWorksheet = XLSX.utils.json_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(newWorkbook, summaryWorksheet, "進銷存報告");
+
+            // 儲存匯總報告
+            XLSX.writeFile(newWorkbook, "進銷存報告.xlsx");
+            console.log('報告生成成功: 進銷存報告.xlsx');
+            alert('報告生成成功: 進銷存報告.xlsx');
+        });
+    </script>
+</body>
+</html>

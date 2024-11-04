@@ -1,119 +1,112 @@
 <!-- public/index.html -->
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-tw">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Chocolate+Classical+Sans&display=swap" rel="stylesheet">
-  <title>庫存盤點系統</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chocolate+Classical+Sans&display=swap" rel="stylesheet">
+    <title>庫存盤點系統</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: "Chocolate Classical Sans", sans-serif;
+            font-weight: 200;
+            font-style: normal;
+            display: flex;
+            justify-content: center;
+            text-align: center;
+            background: #ddd;
+        }
 
-  <style>
+        table {
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            text-align: center;
+            width: auto;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border: 1px solid black;
+        }
 
+        th, td {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: center;
+        }
 
-    body {
-          font-family: "Chocolate Classical Sans",
-    sans-serif;
-	font-weight: 200;
-      font-style: normal;
-      height: auto;
-      width: auto;
-      margin: 0 auto;
-      display: flex;
-      justify-content: center;
-      align-items: center;      
-text-align: center;
-background: #ddd;
-    }
+            td.name {
+                width: auto;
+                border: 1px solid #ddd;
+                padding: 5px;
+                text-align: left;
+            }
 
-    table {
-	  border-radius: 8px;
-      background-color: white;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      border-radius: 10px;
-      text-align: center;
-      width: auto;
-      border-collapse: collapse;
-      margin: 20px 0;
-	  border: 1px solid black;
+            td.spec {
+                border: 1px solid #ddd;
+                padding: 5px;
+                text-align: left;
+            }
 
-    }
+        input[type="number"] {
+            width: 60px;
+            text-align: right;
+        }
 
-    th,
-    td {
-      background-color: white;
-      border: 1px solid #ddd;
-      padding: 5px;
-      text-align: center;
-    }
+        input[type="date"] {
+            width: 110px;
+        }
 
-    td.name {
-      width: auto;
-      border: 1px solid #ddd;
-      padding: 5px;
-      text-align: left;
-    }
+        input.name {
+            width: 50%;
+        }
 
-    td.spec {
-      border: 1px solid #ddd;
-      padding: 5px;
-      text-align: left;
-    }
+        input.number {
+            width: 60px;
+            text-align: right;
+        }
 
-    input[type="number"] {
-      width: 60px;
-      text-align: right;
-    }
+        input.unit {
+            width: 10%;
+        }
 
-    input[type="date"] {
+        modal-content {
+            text-align: center;
+        }
 
-      width: 110px;
-    }
+        .button {
+            font-family: "Chocolate Classical Sans", sans-serif;
+            margin-top: 10px;
+        }
 
-    input.name {
+        #style-3::-webkit-scrollbar-track {
+            -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+            background-color: #ffffff;
+        }
 
-      width: 50%;
-    }
+        #style-3::-webkit-scrollbar {
+            width: 6px;
+            background-color: black;
+        }
 
-    input.number {
-
-      width: 60px;
-      text-align: right;
-    }
-
-    input.unit {
-
-      width: 10%;
-    }
-
-    modal-content {
-      background-color: white;
-      margin-top: 10px;
-      padding: 40px;
-      border-radius: 2px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-    }
-
-    .button {
-      font-family: "Chocolate Classical Sans", sans-serif;
-      margin-top: 10px;
-    }
-
-    p {
-      font-size: 1em;
-    }
-  </style>
+        #style-3::-webkit-scrollbar-thumb {
+            background-color: #666666;
+        }
+    </style>
 </head>
 
-<body>
-<div>
-  <div id="root"></div>
-  <script src="/bundle.js"></script>
+<body class="body" id="style-3">
+    <div>
+        <div id="root"></div>
+        <script src="/bundle.js"></script>
 
-</div>
+    </div>
 </body>
 
 </html>
