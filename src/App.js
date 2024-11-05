@@ -54,7 +54,7 @@ const modalStylesGuide = {
 };
 const App = () => {
     const [latestVersion, setLatestVersion] = useState(null);
-    const currentVersion = '1.0.0'; // 應用程式的當前版本號
+    const currentVersion = '1.0.3'; // 應用程式的當前版本號
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true); // 載入狀態
     const [initialStockData, setInitialStockData] = useState({}); // 存儲期初庫存
@@ -124,7 +124,7 @@ const App = () => {
             try {
                 const response = await axios.get('/version.json'); // 獲取最新版本號
                 const serverVersion = response.data.version;
-                const localVersion = '1.0.0'; // 當前應用版本號
+                const localVersion = '1.0.3'; // 當前應用版本號
                 if (serverVersion !== localVersion) {
                     alert('有新版本可用！請將頁面重新整理！');
                 }
@@ -298,6 +298,7 @@ const App = () => {
         data.forEach(item => {
             worksheet.addRow({
                 ...item,
+			    數量: item.數量 || 0 // 如果數量為空，則設為 0
                 盤點日期: inventoryDate
 
             });
