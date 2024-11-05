@@ -298,7 +298,7 @@ const App = () => {
         data.forEach(item => {
             worksheet.addRow({
                 ...item,
-			    數量: item.數量 || 0 // 如果數量為空，則設為 0
+			    數量: item.數量 || 0, // 如果數量為空，則設為 0
                 盤點日期: inventoryDate
 
             });
