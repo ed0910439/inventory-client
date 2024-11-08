@@ -1,21 +1,22 @@
 # Node.js dependencies
-node_modules/
+node_modules
 
 # Build output
-dist/
-build/
-.vs/
+dist
+build
+.vs
+
 # Environment variables
 .env
 
 # Logs
-log/
+log
 *.log
 
 # Cache
-.cache/
-coverage/
-node_modules/.cache/
+.cache
+coverage
+node_modules/.cache
 
 # MacOS
 .DS_Store
