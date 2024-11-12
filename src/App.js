@@ -12,11 +12,11 @@ import Modal from './components/Modal'; // 確保引入你的 Modal 組件
 import BouncyComponent from './BouncyComponent';
 
 
-const socket = io('https://inventory.edc-pws.com'); // 根据需要可能更改
+const socket = io('process.env.SERVER_URL'); // 根据需要可能更改
 
 // 样式定义
 const App = () => {
-	const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+    const [isProductModalOpen, setIsProductModalOpen] = useState(false);
     const [latestVersion, setLatestVersion] = useState(null);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true); // 載入狀態
@@ -64,7 +64,7 @@ const App = () => {
             setLoading(true); // 開始載入，設置狀態
 
             try {
-                const response = await axios.get('https://inventory.edc-pws.com/api/products');
+                const response = await axios.get(`${process.env.SERVER_URL}/api/products`);
                 setProducts(response.data);
                 setConnectionStatus('連接成功 ✔');
                 setLoading(false); // 載入完成，更新狀態
@@ -79,7 +79,7 @@ const App = () => {
         };
         const fetchVersion = async () => {
             try {
-                const response = await axios.get('https://inventory.edc-pws.com/api/version'); // 獲取最新版本號
+                const response = await axios.get(`${process.env.SERVER_URL}/api/version`); // 獲取最新版本號
                 const serverVersion = response.data.version;
                 const localVersion = '1.0.4'; // 當前應用版本號
                 if (serverVersion !== localVersion) {
@@ -102,7 +102,7 @@ const App = () => {
     };
         const fetchInitialStockData = async () => {
             try {
-                const response = await axios.get('https://inventory.edc-pws.com/archive/originaldata');
+                const response = await axios.get(`${process.env.SERVER_URL}/archive/originaldata`);
                 const initialStockMap = {};
                 response.data.forEach(item => {
                     initialStockMap[item.商品編號] = item.數量; // 儲存成物件以便查詢
@@ -128,7 +128,7 @@ const App = () => {
                     product.商品編號 === updatedProduct.商品編號 ? updatedProduct : product
                 )
             );
-			if ({socketId} !== socket.id){            // 顯示新數據的位置提示
+	           if ({socketId} !== socket.id){            // 顯示新數據的位置提示
             setNewMessage(`使用者: ${socket.id} 修改 ${updatedProduct.商品編號}-${updatedProduct.商品名稱} 數量為  ${updatedProduct.數量}`);
             setShowToast(true);
 
@@ -163,7 +163,7 @@ const App = () => {
             socket.off('updateUserCount');
             window.removeEventListener('mousemove', resetTimer);
             window.removeEventListener('keydown', resetTimer);
-			socket.disconnect();
+	    socket.disconnect();
         };
     }, []);
 
@@ -208,7 +208,7 @@ const App = () => {
 	//下載最新數量
 	const updateQuantity = async (productCode, quantity) => {
         try {
-            await axios.put(`https://inventory.edc-pws.com/api/products/${productCode}/quantity`, { 數量: quantity });
+            await axios.put(`${process.env.SERVER_URL}/api/products/${productCode}/quantity`, { 數量: quantity });
         } catch (error) {
             console.error("更新產品時出錯:", error);
         }
@@ -216,7 +216,7 @@ const App = () => {
 	//下載最新校期
     const updateExpiryDate = async (productCode, expiryDate) => {
         try {
-            await axios.put(`https://inventory.edc-pws.com/api/products/${productCode}/expiryDate`, { 到期日: expiryDate });
+            await axios.put(`${process.env.SERVER_URL}/api/products/${productCode}/expiryDate`, { 到期日: expiryDate });
         } catch (error) {
             console.error("更新到期日時出錯:", error);
         }
@@ -300,12 +300,12 @@ const App = () => {
             </header>
 
 	        <div>
-
+<div className={container}>
             <div style={{ paddingTop: '80px' }}></div>
             {/* 篩選功能 */}
             <div style={{ marginBottom: '20px', textAlign: 'left' }}>
                 <br />
-                <label>　　　　　<strong>廠商</strong>：</label>
+                <label>　　　<strong>廠商</strong>：</label>
                 {['全台', '央廚', '王座', '開元', '裕賀', '美食家', '點線麵'].map(vendor => (
                     <label key={vendor}>
                         <input type="checkbox" checked={selectedVendors.includes(vendor)} onChange={() => handleVendorChange(vendor)} />
@@ -313,7 +313,7 @@ const App = () => {
                     </label>
                 ))}
                 <br />
-                <label>　　　　　<strong>溫層</strong>：</label>{['冷藏', '冷凍', '常溫', '備品', '清潔'].map(layer => (
+                <label>　　　<strong>溫層</strong>：</label>{['冷藏', '冷凍', '常溫', '備品', '清潔'].map(layer => (
                     <label key={layer}>
                         <input
                             type="checkbox" checked={selectedLayers.includes(layer)} onChange={() => handleLayerChange(layer)} />
@@ -338,13 +338,14 @@ const App = () => {
                             <tr key={product.商品編號}>
                                 <td style={{border: '2px solid #eee'}}>{product.商品編號}</td>
                                 <td style={{border: '2px solid #eee', textAlign: 'left', cursor: 'pointer' }} onMouseEnter={(e) => handleMouseEnter(product, e)} onMouseLeave={handleMouseLeave}>{product.商品名稱}</td>
-                                <td style={{ border: '2px solid #eee', width: '60px' }}><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyDown={(e) => handleKeyPress(e, index)} data-index={index} required /></td>
+                                <td style={{border: '2px solid #eee', width: '60px' }}><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyDown={(e) => handleKeyPress(e, index)} data-index={index} required /></td>
                                 <td style={{border: '2px solid #eee'}}>{product.單位}</td>
                                 <td style={{border: '2px solid #eee'}}><input className='date' type="date" value={product.到期日 ? new Date(product.到期日).toISOString().split('T')[0] : ""} onChange={(e) => handleExpiryDateChange(product.商品編號, e.target.value)} /></td>
                             </tr>
                         )))}
                 </tbody>
             </table>
+			</div>
 			{/* 載入提示 */}
             {loading && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
