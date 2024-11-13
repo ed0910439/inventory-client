@@ -5,12 +5,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Chocolate+Classical+Sans&display=swap" rel="stylesheet">
     <title>庫存盤點系統</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js" integrity="sha384-1PH7loFe9aVDAyHgsXQly6QE1ATOEHvmQt4vAuu6ppdeL5lm9vqAczXV0R6sbJkJ"></script>
     <style>
 
         body {
@@ -23,6 +22,11 @@
             text-align: center;
             background: #ddd;
         }
+.container {
+    max-width: 600px; /* 設定與行動裝置相同的最大寬度 */
+    margin: 0 auto;   /* 自動左右邊距 */
+    padding: 0 20px;  /* 可選的內邊距 */
+}
 
         table, th, td {
             border-radius: 8px;

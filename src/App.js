@@ -12,11 +12,11 @@ import Modal from './components/Modal'; // 確保引入你的 Modal 組件
 import BouncyComponent from './BouncyComponent';
 
 
-const socket = io('https://inventory.edc-pws.com'); // 根据需要可能更改
+const socket = io('process.env.SERVER_URL'); // 根据需要可能更改
 
 // 样式定义
 const App = () => {
-	const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+    const [isProductModalOpen, setIsProductModalOpen] = useState(false);
     const [latestVersion, setLatestVersion] = useState(null);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true); // 載入狀態
@@ -64,7 +64,7 @@ const App = () => {
             setLoading(true); // 開始載入，設置狀態
 
             try {
-                const response = await axios.get('https://inventory.edc-pws.com/api/products');
+                const response = await axios.get(`${process.env.SERVER_URL}/api/products`);
                 setProducts(response.data);
                 setConnectionStatus('連接成功 ✔');
                 setLoading(false); // 載入完成，更新狀態
@@ -184,7 +184,6 @@ const App = () => {
             prev.includes(vendor) ? prev.filter(v => v !== vendor) : [...prev, vendor]
         );
     };
-  
 
     // 控制溫層篩選
     const handleLayerChange = (layer) => {
@@ -219,7 +218,7 @@ const App = () => {
 	//下載最新校期
     const updateExpiryDate = async (productCode, expiryDate) => {
         try {
-            await axios.put(`https://inventory.edc-pws.com/api/products/${productCode}/expiryDate`, { 到期日: expiryDate });
+            await axios.put(`${process.env.SERVER_URL}/api/products/${productCode}/expiryDate`, { 到期日: expiryDate });
         } catch (error) {
             console.error("更新到期日時出錯:", error);
         }
@@ -373,6 +372,7 @@ const App = () => {
                         )))}
                 </tbody>
             </table>
+			</div>
 			{/* 載入提示 */}
             {loading && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>

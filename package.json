@@ -10,10 +10,13 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
+    "@rollup/plugin-inject": "^5.0.5",
     "axios": "^1.7.7",
+    "css-select": "^5.1.0",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
     "ldrs": "^1.0.2",
+    "postcss": "^8.4.31",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-modal": "^3.16.1",
@@ -25,7 +28,8 @@
     "@babel/plugin-transform-private-property-in-object": "^7.25.9",
     "@babel/preset-env": "^7.25.7",
     "@babel/preset-react": "^7.25.7",
-    "babel-loader": "^9.2.1"
+    "babel-loader": "^9.2.1",
+    "wrangler": "^3.86.0"
   },
   "browserslist": {
     "production": [
