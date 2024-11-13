@@ -11,31 +11,19 @@
   z-index: 1000;
 }
 
-.modal-content {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  max-width: 80%;
-  max-height: 80%;
-  margin: auto;
-  overflow: auto;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
 
-table, th, td, tr {
-	border-collapse: collapse;
-	border: white;
-	box-shadow: 0 0;
-}
+
+
 H2{
 	margin-top:0;
 }
 /* 根據需求調整框架與頁面邊緣間距 */
-@media (min-width: 768px) {
+@media (min-width: 600px) {
   .modal-content {
     max-width: calc(100% - 20%);
     max-height: calc(100% - 20%);
   }
+
 }
 
 @media (min-width: 1024px) {
@@ -43,6 +31,7 @@ H2{
     max-width: calc(100% - 30%);
     max-height: calc(100% - 30%);
   }
+
 }
 
 #style-3::-webkit-scrollbar-track {

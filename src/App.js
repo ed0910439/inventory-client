@@ -79,9 +79,9 @@ const App = () => {
         };
         const fetchVersion = async () => {
             try {
-                const response = await axios.get('https://inventory.edc-pws.com/api/version'); // 獲取最新版本號
+                const response = await axios.get('./version.json'); // 獲取最新版本號
                 const serverVersion = response.data.version;
-                const localVersion = '1.0.4'; // 當前應用版本號
+                const localVersion = '1.0.5'; // 當前應用版本號
                 if (serverVersion !== localVersion) {
                     setModalContent({
                     title: '版本更新',
@@ -178,10 +178,13 @@ const App = () => {
     };
     // 控制廠商篩選
     const handleVendorChange = (vendor) => {
+          const actualVendors = (vendor === '其它') ? ['裕賀', '開元', '美食家', '點線麵'] : [vendor];
+
         setSelectedVendors((prev) =>
             prev.includes(vendor) ? prev.filter(v => v !== vendor) : [...prev, vendor]
         );
     };
+  
 
     // 控制溫層篩選
     const handleLayerChange = (layer) => {
@@ -281,53 +284,78 @@ const App = () => {
             {/* 導航條 */}
             <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, width:'100%', padding: '0px', display: 'flex', justifyContent: 'space-around', backgroundColor: '#f4f4f4', borderBottom: '1px solid #ccc' }}>
             <table style={{width:'100%', marginTop: 0, marginBottom: 0, borderRadius: 0}}>
-			<tbody>
-				<tr>
-					<td style={{ margin: 0, fontSize: '1em', textAlign: 'left',  padding: '10px 0px 0px 20px'}}>伺  服  器：<strong>{connectionStatus}</strong></td>
-                    <td  rowSpan="2" style={{ margin: 0, padding: '0px 0px 0px 0px'}}><h1 style={{ margin: 0, fontSize: '35px'}}>庫存盤點系統</h1></td>
-					<td style={{  margin: 0, padding: '10px 20px 0px 0px', textAlign: 'right' }}><button style={{ fontFamily: 'Chocolate Classical Sans', margin: 0,  }} onClick={() =>  setShowGuide(true)}>說明</button>
-                    <button style={{ fontFamily: 'Chocolate Classical Sans',  marginLeft: '5px', marginTop: '0px'}} onClick={() => setIsArchiveModalOpen(true)}>歸檔</button>
-                    <button style={{ fontFamily: 'Chocolate Classical Sans', marginLeft: '5px', marginTop: '0px'}} onClick={() => setIsProductModalOpen(true)}>缺漏</button></td>
-				</tr>
-				<tr>
-					<td style={{ margin: 0, fontSize: '1em', textAlign: 'left',  padding: '0px 0px 10px 20px'  }}>在線人數：<strong>{userCount}</strong>人</td>
-					<td style={{  margin: 0, padding: '0px 20px 10px 0px', textAlign: 'right', }}><button style={{ fontFamily: 'Chocolate Classical Sans', marginTop: '5px' }} onClick={() => setIsExportModalOpen(true)}>導出 Excel</button>
-                    <button style={{ fontFamily: 'Chocolate Classical Sans', marginLeft: '5px' }} onClick={() => setUploadModalOpen(true)}>匯總報表</button></td>
-				</tr>
-				</tbody>
-				</table>
+                <thead>
+                  <tr>
+                    <td colSpan="2" style={{ margin: 0, padding: '0px', textAlign: 'center' }}>
+                      <h1 style={{ margin: 0,marginTop: '5px', padding: '0px'}}>庫存盤點系統</h1>
+                    </td>
+                    <td rowSpan="2" style={{ margin: 0, padding: '0px', textAlign: 'right' }}>
+                      <button style={{ fontFamily: 'Chocolate Classical Sans', margin: 0, marginTop: '5px' }} onClick={() => setShowGuide(true)}>說明</button>
+                      <button style={{ fontFamily: 'Chocolate Classical Sans', margin: 0, marginLeft: '5px', marginTop: '0px' }} onClick={() => setIsArchiveModalOpen(true)}>歸檔</button>
+                      <button style={{ fontFamily: 'Chocolate Classical Sans', margin: 0, marginLeft: '5px', marginTop: '0px', marginRight: '8px' }} onClick={() => setIsProductModalOpen(true)}>缺漏</button>
+                      <br />
+                      <button style={{ fontFamily: 'Chocolate Classical Sans', margin: 0, marginTop: '5px' }} onClick={() => setIsExportModalOpen(true)}>匯出</button>
+                      <button style={{ fontFamily: 'Chocolate Classical Sans', margin: 0, marginLeft: '5px', marginTop: '8px', marginRight: '8px' }} onClick={() => setUploadModalOpen(true)}>匯總報表</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colSpan="2" style={{ margin: 0, padding: '0px',fontSize: '1em', textAlign: 'center' }}>
+                      {connectionStatus} | 在線共<strong>{userCount}</strong>人
+                    </td>
+                  </tr>
+                </thead>
+<tbody>
+  <tr>
+    <td colSpan="3" style={{ margin: 0, padding: 0 }}>
+      <hr />
+    </td>
+  </tr>
+  <tr>
+    <td colSpan="3" style={{ margin: 0, padding: '0px', textAlign: 'center' }}>
+      <label><strong>廠商</strong>：</label>
+      {/* 合併其他廠商為 '其它' */}
+      {['全台', '忠欣', '央廚', '王座', '其它'].map(vendor => (
+        <label key={vendor}>
+          <input
+            type="checkbox"
+            checked={selectedVendors.includes(vendor)}
+            onChange={() => handleVendorChange(vendor)}
+          />
+          {vendor}
+        </label>
+      ))}
+    </td>
+  </tr>
+  <tr>
+    <td colSpan="3" style={{ margin: 0, padding: '0px', textAlign: 'center', marginBottom: '10px' }}>
+      <label><strong>溫層</strong>：</label>
+      {['冷藏', '冷凍', '常溫', '備品', '清潔'].map(layer => (
+        <label key={layer}>
+          <input
+            type="checkbox"
+            checked={selectedLayers.includes(layer)}
+            onChange={() => handleLayerChange(layer)}
+          />
+          {layer}
+        </label>
+      ))}
+    </td>
+  </tr>
+</tbody>
+              </table>
             </nav>
             </header>
 
 	        <div>
 
-            <div style={{ paddingTop: '80px' }}></div>
-            {/* 篩選功能 */}
-            <div style={{ marginBottom: '20px', textAlign: 'left' }}>
-                <br />
-                <label>　　　　　<strong>廠商</strong>：</label>
-                {['全台', '央廚', '王座', '開元', '裕賀', '美食家', '點線麵'].map(vendor => (
-                    <label key={vendor}>
-                        <input type="checkbox" checked={selectedVendors.includes(vendor)} onChange={() => handleVendorChange(vendor)} />
-                        {vendor}
-                    </label>
-                ))}
-                <br />
-                <label>　　　　　<strong>溫層</strong>：</label>{['冷藏', '冷凍', '常溫', '備品', '清潔'].map(layer => (
-                    <label key={layer}>
-                        <input
-                            type="checkbox" checked={selectedLayers.includes(layer)} onChange={() => handleLayerChange(layer)} />
-                        {layer}
-                    </label>
-                ))}
-            </div>
+            <div style={{ paddingTop: '152px' }}></div>
             {/* 表格本體 */}
             <table>
                 <thead>
                     <tr>
-                        <th style={{border: '2px solid #eee', width: '105.26px' }}>商品編號</th>
-                        <th style={{border: '2px solid #eee', width: '345.74px' }}>商品名稱</th>
-                        <th style={{border: '2px solid #eee', width: '60px' }}>數量</th>
+<th className="product-code" style={{ border: '2px solid #eee' }}>商品編號</th>
+                        <th className="product-code"style={{border: '2px solid #eee'}}>商品名稱</th>
+                        <th style={{border: '2px solid #eee'}}>數量</th>
                         <th style={{border: '2px solid #eee'}}>單位</th>
                         <th style={{border: '2px solid #eee'}}>到期日</th>
                     </tr>
@@ -336,9 +364,9 @@ const App = () => {
                     {filteredProducts.map((product, index) => (
                         product.廠商 !== '#N/A' && ( // 顯示時排除廠商值為 #N/A 的行
                             <tr key={product.商品編號}>
-                                <td style={{border: '2px solid #eee'}}>{product.商品編號}</td>
+        <td className="product-code" style={{ border: '2px solid #eee' }}>{product.商品編號}</td>
                                 <td style={{border: '2px solid #eee', textAlign: 'left', cursor: 'pointer' }} onMouseEnter={(e) => handleMouseEnter(product, e)} onMouseLeave={handleMouseLeave}>{product.商品名稱}</td>
-                                <td style={{ border: '2px solid #eee', width: '60px' }}><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyDown={(e) => handleKeyPress(e, index)} data-index={index} required /></td>
+                                <td style={{border: '2px solid #eee'}}><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyDown={(e) => handleKeyPress(e, index)} data-index={index} required /></td>
                                 <td style={{border: '2px solid #eee'}}>{product.單位}</td>
                                 <td style={{border: '2px solid #eee'}}><input className='date' type="date" value={product.到期日 ? new Date(product.到期日).toISOString().split('T')[0] : ""} onChange={(e) => handleExpiryDateChange(product.商品編號, e.target.value)} /></td>
                             </tr>

@@ -12,10 +12,12 @@
     <title>庫存盤點系統</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <style>
+
         body {
             font-family: "Chocolate Classical Sans", sans-serif;
-            font-weight: 200;
+            font-weight: revert-layer;
             font-style: normal;
+            width:auto;
             display: flex;
             justify-content: center;
             text-align: center;
@@ -25,12 +27,13 @@
         table, th, td {
             border-radius: 8px;
             background: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             text-align: center;
             width: auto;
             border-collapse: collapse;
-            margin: 20px 0;
-
+            margin: 0px;
+            border: white;
+            box-shadow: 0 0;
+        
             padding: 5px;
 		}
             td.name {
@@ -45,23 +48,20 @@
                 text-align: left;
             }
 
+
         input[type="number"] {
-            width: 60px;
+            width: 40px;
             text-align: right;
         }
 
         input[type="date"] {
-            width: 110px;
+            width: 100px;
         }
 
         input.name {
             width: 50%;
         }
 
-        input.number {
-            width: 60px;
-            text-align: right;
-        }
 
         input[name="單位"] {
             width: 60px;
