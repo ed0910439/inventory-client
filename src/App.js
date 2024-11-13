@@ -12,7 +12,7 @@ import Modal from './components/Modal'; // 確保引入你的 Modal 組件
 import BouncyComponent from './BouncyComponent';
 
 
-const socket = io('process.env.SERVER_URL'); // 根据需要可能更改
+const socket = io('https://inventory.edc-pws.com'); // 根据需要可能更改
 
 // 样式定义
 const App = () => {
@@ -64,7 +64,7 @@ const App = () => {
             setLoading(true); // 開始載入，設置狀態
 
             try {
-                const response = await axios.get(`${process.env.SERVER_URL}/api/products`);
+                const response = await axios.get(`https://inventory.edc-pws.com/api/products`);
                 setProducts(response.data);
                 setConnectionStatus('連接成功 ✔');
                 setLoading(false); // 載入完成，更新狀態
@@ -92,12 +92,13 @@ const App = () => {
             }
         } catch (error) {
             console.error('取得版本更新失敗:', error);
-            setModalContent({
+                    setModalContent({
                 title: '錯誤',
                 message: '無法獲取版本更新訊息。',
                 type: 'error',
             });
-            setIsModalOpen(true);
+            setIsModalOpen(true);   
+        
         }
     };
         const fetchInitialStockData = async () => {
@@ -347,7 +348,7 @@ const App = () => {
 
 	        <div>
 
-            <div style={{ paddingTop: '152px' }}></div>
+            <div style={{ paddingTop: '140px' }}></div>
             {/* 表格本體 */}
             <table>
                 <thead>
@@ -449,9 +450,12 @@ const App = () => {
                     type={modalContent.type}
                 />
            
-            {/* 合併檔案 */}
-            {isUploadModalOpen && (
-                <div style={overlayStyles} onClick={() => isUploadModalOpen(false)}>
+            {/*合併檔案 *
+
+            {isUploadModalOpen && <Modal onClose={() => setUploadModalOpen(false)}/>}
+ 
+            setIsModalOpen(true);
+                {/* <div style={overlayStyles} onClick={() => isUploadModalOpen(false)}>
                     <div style={modalStyles} onClick={(e) => e.stopPropagation()}>
                         <div><h2>合併至進銷存</h2>
 
@@ -464,8 +468,8 @@ const App = () => {
 
                             <button onClick={uploadFiles}>上傳</button>
                             <button onClick={() => setUploadModalOpen(false)}>取消</button>
-                        </div> </div></div>
-            )})
+                        </div> </div></div>*/}
+            )};
 
 
             {/* 顯示離線提示框 */}
@@ -506,7 +510,7 @@ const App = () => {
             }}>
                 <p style={{ margin: '0px' }}>© 2024 edc-pws.com. All rights reserved.</p>
             </footer>
-        </div>
+
 		</>
     );
 };
