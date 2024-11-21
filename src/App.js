@@ -4,12 +4,13 @@ import axios from 'axios';
 import { saveAs } from 'file-saver';
 import ExcelJS from 'exceljs';
 import io from 'socket.io-client';
-import ExportModal  from './components/ExportModal';
-import ProductModal  from './components/ProductModal';
-import ArchiveModal  from './components/ArchiveModal';
-import GuideModal  from './components/GuideModal';
+import ExportModal from './components/ExportModal';
+import ProductModal from './components/ProductModal';
+import ArchiveModal from './components/ArchiveModal';
+import GuideModal from './components/GuideModal';
 import Modal from './components/Modal'; // 確保引入你的 Modal 組件
 import BouncyComponent from './BouncyComponent';
+import StartInventory from './components/StartInventory';
 
 
 const socket = io('https://inventory.edc-pws.com'); // 根据需要可能更改
@@ -31,6 +32,7 @@ const App = () => {
     const idleTimeout = 600000; // 閒置10分鐘 （600,000毫秒）
     const [modalContent, setModalContent] = useState({});
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [hoveredProduct, setHoveredProduct] = useState(null); // 懸停的商品編號
@@ -40,6 +42,9 @@ const App = () => {
     const [isOfflineMode, setIsOfflineMode] = useState(false);
     const inputRefs = useRef([]); // 用於儲存每個輸入框的引用
     const [socketId, setSocketId] = useState('');
+    const filterRef = useRef(null);
+    const allVendors = ['全台', '央廚', '王座', '王座-食', '忠欣', '開元', '裕賀', '美食家', '點線麵']; // 所有廠商
+    const [disabledVendors, setDisabledVendors] = useState(['忠欣', '王座']); // 例如，禁用 '全台' 和 '央廚' 廠商的到期日輸入
 
     const [year, setYear] = useState('');
     const [month, setMonth] = useState('');
@@ -47,7 +52,8 @@ const App = () => {
     const [initialUnit, setInitialUnit] = useState(''); // 用於存儲期初庫存量
     const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 }); // 記錄工具提示的位置
     const [password, setPassword] = useState('');
-  const [modalVisible, setModalVisible] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [isStartInventoryOpen, setIsStartInventoryOpen] = useState(false);
 
     const [isUploadModalOpen, setUploadModalOpen] = useState(false);
     const [files, setFiles] = useState({
@@ -68,7 +74,7 @@ const App = () => {
                 setProducts(response.data);
                 setConnectionStatus('連接成功 ✔');
                 setLoading(false); // 載入完成，更新狀態
-				setSocketId(socket.id); // 設置 socket id 到狀態中
+                setSocketId(socket.id); // 設置 socket id 到狀態中
 
             } catch (error) {
                 console.error("取得產品時出錯:", error.response ? error.response.data : error.message);
@@ -84,23 +90,23 @@ const App = () => {
                 const localVersion = '1.0.5'; // 當前應用版本號
                 if (serverVersion !== localVersion) {
                     setModalContent({
-                    title: '版本更新',
-                    message: '有新版本可用！請將頁面重新整理！',
-                    type: 'warning', // 或 `success` 根據需要調整
+                        title: '版本更新',
+                        message: '有新版本可用！請將頁面重新整理！',
+                        type: 'warning', // 或 `success` 根據需要調整
+                    });
+                    setIsModalOpen(true);
+                }
+            } catch (error) {
+                console.error('取得版本更新失敗:', error);
+                setModalContent({
+                    title: '錯誤',
+                    message: '無法獲取版本更新訊息。',
+                    type: 'error',
                 });
-                setIsModalOpen(true);
+                // setIsModalOpen(true);   
+
             }
-        } catch (error) {
-            console.error('取得版本更新失敗:', error);
-                    setModalContent({
-                title: '錯誤',
-                message: '無法獲取版本更新訊息。',
-                type: 'error',
-            });
-            setIsModalOpen(true);   
-        
-        }
-    };
+        };
         const fetchInitialStockData = async () => {
             try {
                 const response = await axios.get('https://inventory.edc-pws.com/archive/originaldata');
@@ -129,14 +135,14 @@ const App = () => {
                     product.商品編號 === updatedProduct.商品編號 ? updatedProduct : product
                 )
             );
-			if ({socketId} !== socket.id){            // 顯示新數據的位置提示
-            setNewMessage(`使用者: ${socket.id} 修改 ${updatedProduct.商品編號}-${updatedProduct.商品名稱} 數量為  ${updatedProduct.數量}`);
-            setShowToast(true);
+            if ({ socketId } !== socket.id) {            // 顯示新數據的位置提示
+                setNewMessage(`使用者: ${socket.id} 修改 ${updatedProduct.商品編號}-${updatedProduct.商品名稱} 數量為  ${updatedProduct.數量}`);
+                setShowToast(true);
 
-            setTimeout(() => {
-                setShowToast(false);
-            }, 4000);
-			}
+                setTimeout(() => {
+                    setShowToast(false);
+                }, 4000);
+            }
         });
 
 
@@ -164,7 +170,7 @@ const App = () => {
             socket.off('updateUserCount');
             window.removeEventListener('mousemove', resetTimer);
             window.removeEventListener('keydown', resetTimer);
-			socket.disconnect();
+            socket.disconnect();
         };
     }, []);
 
@@ -179,7 +185,6 @@ const App = () => {
     };
     // 控制廠商篩選
     const handleVendorChange = (vendor) => {
-          const actualVendors = (vendor === '其它') ? ['裕賀', '開元', '美食家', '點線麵'] : [vendor];
 
         setSelectedVendors((prev) =>
             prev.includes(vendor) ? prev.filter(v => v !== vendor) : [...prev, vendor]
@@ -208,15 +213,15 @@ const App = () => {
             }
         }
     };
-	//下載最新數量
-	const updateQuantity = async (productCode, quantity) => {
+    //下載最新數量
+    const updateQuantity = async (productCode, quantity) => {
         try {
             await axios.put(`https://inventory.edc-pws.com/api/products/${productCode}/quantity`, { 數量: quantity });
         } catch (error) {
             console.error("更新產品時出錯:", error);
         }
     };
-	//下載最新校期
+    //下載最新校期
     const updateExpiryDate = async (productCode, expiryDate) => {
         try {
             await axios.put(`${process.env.SERVER_URL}/api/products/${productCode}/expiryDate`, { 到期日: expiryDate });
@@ -224,7 +229,7 @@ const App = () => {
             console.error("更新到期日時出錯:", error);
         }
     };
-	//上傳數量
+    //上傳數量
     const handleQuantityChange = (productCode, quantity) => {
         if (quantity < 0) { alert("數量不能為負。"); return; } const updatedProducts = products.map(product =>
             product.商品編號 === productCode ? { ...product, 數量: quantity } : product
@@ -233,7 +238,7 @@ const App = () => {
         setProducts(updatedProducts);
         updateQuantity(productCode, quantity);
     };
-	//上傳校期
+    //上傳校期
     const handleExpiryDateChange = (productCode, expiryDate) => {
         const updatedProducts = products.map(product =>
             product.商品編號 === productCode ? { ...product, 到期日: expiryDate } : product
@@ -244,7 +249,8 @@ const App = () => {
     };
 
     const handleMouseEnter = (product, e) => {
-        setHoveredProduct(product.商品編號); // 設置當前懸停的商品編號
+        const isExpiryDisabled = disabledVendors.includes(product.廠商);
+        setHoveredProduct({ ...product, isExpiryDisabled }); // 將 isExpiryDisabled 屬性加入 hoveredProduct 物件
         setInitialStock(initialStockData[product.商品編號] || '未設定'); // 查找對應的期初庫存
         setCurrentSpec(product.規格); // 設置當前商品的規格
         const rect = e.currentTarget.getBoundingClientRect(); // 獲取當前商品行的邊界
@@ -257,199 +263,133 @@ const App = () => {
         setInitialStock(''); // 清除期初庫存數據
         setCurrentSpec(''); // 清除規格數據
     };
-  
-
-
-
-    //合併檔案
-    // 主组件
-
-    const handleFileChange = (event, key) => {
-        const file = event.target.files[0];
-        if (file) {
-            setFiles(prevFiles => ({ ...prevFiles, [key]: file })); // 確保更新正確的文件狀態
-        }
-    };
-
-    const uploadFiles = async () => {
-        // 处理上传的文件
-        await processFiles(files);
-        setUploadModalOpen(false); // 关闭对话框
-    };
-
     return (
-	<>
+        <>
             <header>
+                {/*導航條*/}
+                <nav className="inventory-header">
+                    <div className="header-container"> {/* 新增一個容器來控制 header 的內容寬度 */}
+                        <table className="header-table">
+                            <thead>
+                                <tr>
+                                    <td colSpan="1" className="header-table.th" style={{ textAlign: 'center' }}>
+                                        <h1 >庫存盤點系統</h1>
+                                    </td>
+                                    <td rowSpan="2" className="header-table.td" style={{ width: '200px', textAlign: 'right' }}>
+                                        <button className="header-button" onClick={() => setIsStartInventoryOpen(true)}>開始</button>
+                                        <button className="header-button" onClick={() => setIsFilterModalOpen(true)}>篩選</button>
+                                        <button className="header-button" onClick={() => setIsProductModalOpen(true)}>缺漏</button>
+                                        <button className="header-button" onClick={() => setShowGuide(true)}>說明</button>
+                                        <br />
+                                        <button className="header-button" onClick={() => setIsArchiveModalOpen(true)}>歸檔</button>
+                                        <button className="header-button" onClick={() => setIsExportModalOpen(true)}>匯出</button>
+                                        <button className="header-button" onClick={() => setUploadModalOpen(true)}>匯總報表</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colSpan="1" className="header-table.td" rstyle={{ textAlign: 'center' }}>
+                                        {connectionStatus} | 在線共 <strong>{userCount}</strong> 人
+                                    </td>
+                                    
+                                </tr>
 
-            {/* 導航條 */}
-            <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, width:'100%', padding: '0px', display: 'flex', justifyContent: 'space-around', backgroundColor: '#f4f4f4', borderBottom: '1px solid #ccc' }}>
-            <table style={{width:'100%', marginTop: 0, marginBottom: 0, borderRadius: 0}}>
-                <thead>
-                  <tr>
-                    <td colSpan="2" style={{ margin: 0, padding: '0px', textAlign: 'center' }}>
-                      <h1 style={{ margin: 0,marginTop: '5px', padding: '0px'}}>庫存盤點系統</h1>
-                    </td>
-                    <td rowSpan="2" style={{ margin: 0, padding: '0px', textAlign: 'right' }}>
-                      <button style={{ fontFamily: 'Chocolate Classical Sans', margin: 0, marginTop: '5px' }} onClick={() => setShowGuide(true)}>說明</button>
-                      <button style={{ fontFamily: 'Chocolate Classical Sans', margin: 0, marginLeft: '5px', marginTop: '0px' }} onClick={() => setIsArchiveModalOpen(true)}>歸檔</button>
-                      <button style={{ fontFamily: 'Chocolate Classical Sans', margin: 0, marginLeft: '5px', marginTop: '0px', marginRight: '8px' }} onClick={() => setIsProductModalOpen(true)}>缺漏</button>
-                      <br />
-                      <button style={{ fontFamily: 'Chocolate Classical Sans', margin: 0, marginTop: '5px' }} onClick={() => setIsExportModalOpen(true)}>匯出</button>
-                      <button style={{ fontFamily: 'Chocolate Classical Sans', margin: 0, marginLeft: '5px', marginTop: '8px', marginRight: '8px' }} onClick={() => setUploadModalOpen(true)}>匯總報表</button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td colSpan="2" style={{ margin: 0, padding: '0px',fontSize: '1em', textAlign: 'center' }}>
-                      {connectionStatus} | 在線共<strong>{userCount}</strong>人
-                    </td>
-                  </tr>
-                </thead>
-<tbody>
-  <tr>
-    <td colSpan="3" style={{ margin: 0, padding: 0 }}>
-      <hr />
-    </td>
-  </tr>
-  <tr>
-    <td colSpan="3" style={{ margin: 0, padding: '0px', textAlign: 'center' }}>
-      <label><strong>廠商</strong>：</label>
-      {/* 合併其他廠商為 '其它' */}
-      {['全台', '忠欣', '央廚', '王座', '其它'].map(vendor => (
-        <label key={vendor}>
-          <input
-            type="checkbox"
-            checked={selectedVendors.includes(vendor)}
-            onChange={() => handleVendorChange(vendor)}
-          />
-          {vendor}
-        </label>
-      ))}
-    </td>
-  </tr>
-  <tr>
-    <td colSpan="3" style={{ margin: 0, padding: '0px', textAlign: 'center', marginBottom: '10px' }}>
-      <label><strong>溫層</strong>：</label>
-      {['冷藏', '冷凍', '常溫', '備品', '清潔'].map(layer => (
-        <label key={layer}>
-          <input
-            type="checkbox"
-            checked={selectedLayers.includes(layer)}
-            onChange={() => handleLayerChange(layer)}
-          />
-          {layer}
-        </label>
-      ))}
-    </td>
-  </tr>
-</tbody>
-              </table>
-            </nav>
+                            </thead>
+                        </table>
+                    </div>
+                </nav>
             </header>
 
-	        <div>
 
-            <div style={{ paddingTop: '140px' }}></div>
+            <div style={{ paddingTop: '70px' }}></div>
             {/* 表格本體 */}
-            <table>
+            <table className="table">
                 <thead>
-                    <tr>
-<th className="product-code" style={{ border: '2px solid #eee' }}>商品編號</th>
-                        <th className="product-code"style={{border: '2px solid #eee'}}>商品名稱</th>
-                        <th style={{border: '2px solid #eee'}}>數量</th>
-                        <th style={{border: '2px solid #eee'}}>單位</th>
-                        <th style={{border: '2px solid #eee'}}>到期日</th>
+                    <tr >
+                        <th className="th">商品編號</th>
+                        <th className="th">商品名稱</th>
+                        <th className="th">數量</th>
+                        <th className="th">單位</th>
+                        <th className="th">到期日</th>
                     </tr>
                 </thead>
                 <tbody>
                     {filteredProducts.map((product, index) => (
-                        product.廠商 !== '#N/A' && ( // 顯示時排除廠商值為 #N/A 的行
-                            <tr key={product.商品編號}>
-        <td className="product-code" style={{ border: '2px solid #eee' }}>{product.商品編號}</td>
-                                <td style={{border: '2px solid #eee', textAlign: 'left', cursor: 'pointer' }} onMouseEnter={(e) => handleMouseEnter(product, e)} onMouseLeave={handleMouseLeave}>{product.商品名稱}</td>
-                                <td style={{border: '2px solid #eee'}}><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyDown={(e) => handleKeyPress(e, index)} data-index={index} required /></td>
-                                <td style={{border: '2px solid #eee'}}>{product.單位}</td>
-                                <td style={{border: '2px solid #eee'}}><input className='date' type="date" value={product.到期日 ? new Date(product.到期日).toISOString().split('T')[0] : ""} onChange={(e) => handleExpiryDateChange(product.商品編號, e.target.value)} /></td>
-                            </tr>
+                            product.廠商 !== '#N/A' && ( // 顯示時排除廠商值為 #N/A 的行
+                                <tr key={product.商品編號}>
+                                <td className="td">{product.商品編號}</td>
+                                <td className="td" onMouseEnter={(e) => handleMouseEnter(product, e)} onMouseLeave={handleMouseLeave}>{product.商品名稱}</td>
+                                <td className="td"><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyDown={(e) => handleKeyPress(e, index)} data-index={index} required /></td>
+                                <td className="td">{product.單位}</td>
+                                <td className="td"><input className='date' type="date" value={product.到期日 ? new Date(product.到期日).toISOString().split('T')[0] : ""} onChange={(e) => handleExpiryDateChange(product.商品編號, e.target.value)} disabled={hoveredProduct && hoveredProduct.isExpiryDisabled} /></td></tr>
                         )))}
                 </tbody>
-            </table>
-			</div>
-			{/* 載入提示 */}
+            </table> 
+            {isFilterModalOpen && (
+                <div className="modal-overlay" onClick={() => setIsFilterModalOpen(false)}>
+                    <div className="modal-content" id="style-3" onClick={(e) => e.stopPropagation()}>
+                        <div ref={filterRef} > {/*移除 style */}
+                            <table className="header-table" style={{ margin: 5 }}>
+                                <tbody >
+                                    <tr>
+                                        <th style={{ padding: '10', margin: '5' }}><h2>廠商</h2></th>
+                                        <th style={{ padding: '10', margin: '5' }}><h2>溫層</h2></th>
+                                    </tr>
+                                    <tr>
+                                        <td style={{ valign: 'top', textAlign: 'left', padding: '10', margin: '5' }}>
+                                        {allVendors.map(vendor => (
+                                            <li><label key={vendor} className="filter-item">
+                                                <input type="checkbox" checked={selectedVendors.includes(vendor)} onChange={() => handleVendorChange(vendor)} />
+                                                {vendor}
+                                            </label></li>
+                                        ))}</td>
+                                        <td style={{ valign: 'top', textAlign: 'left', padding: '10', margin: '5' }}>
+                                            {['冷藏', '冷凍', '常溫', '清潔', '備品'].map(layer => (
+                                                <li><label key={layer} className="filter-item">
+                                                    <input type="checkbox" checked={selectedLayers.includes(layer)} onChange={() => handleLayerChange(layer)} />
+                                                    {layer}
+                                                </label></li>
+                                            ))}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 載入提示 */}
             {loading && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
-                    <div>   
-            <BouncyComponent />
-        </div>
+                    <div>
+                        <BouncyComponent />
+                    </div>
                 </div>
-  
             )}
             {/* 顯示工具提示 */}
-            {hoveredProduct && (
-                <div style={{
-                    textAlign: 'left',
-                    fontSize: '12px',
-                    position: 'fixed',
-                    backgroundColor: 'white',
-                    border: '1px solid #ccc',
-                    padding: '5px',
-                    borderRadius: '5px',
-                    zIndex: 1000,
-                    top: tooltipPosition.top,
-                    left: tooltipPosition.left,
-                }}>
-                    期初庫存量：{initialStock}<br />
-                    規格：{currentSpec} {/* 顯示規格 */}
-
-                </div>
+            {hoveredProduct && (<div style={{ textAlign: 'left', fontSize: '12px', position: 'fixed', backgroundColor: 'white', border: '1px solid #ccc', padding: '5px', borderRadius: '5px', zIndex: 1000, top: tooltipPosition.top, left: tooltipPosition.left, }}>
+                期初庫存量：{initialStock}<br />
+                規格：{currentSpec} {/* 顯示規格 */}</div>
             )}
             {/* 短暫提示 */}
-            {showToast && (
-                <div style={{
-                    position: 'fixed',
-                    top: '20px',
-                    right: '20px',
-                    backgroundColor: '#4caf50', // 可根據需要更改顏色
-                    color: 'white',
-                    padding: '10px',
-                    borderRadius: '5px',
-                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
-                    zIndex: 1000,
-                }}>
-                    {newMessage}
-                </div>
+            {showToast && (<div style={{ position: 'fixed', top: '20px', right: '20px', backgroundColor: '#4caf50', color: 'white', padding: '10px', borderRadius: '5px', boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)', zIndex: 1000, }}> {newMessage} </div>
             )}
-			{/* 使用ProductModal */}
-            <ProductModal 
-                isOpen={isProductModalOpen} 
-                onClose={() => setIsProductModalOpen(false)} 
-                setProducts={setProducts} 
-            />
+            {/* 使用ProductModal */}
+            <ProductModal isOpen={isProductModalOpen} onClose={() => setIsProductModalOpen(false)} setProducts={setProducts} />
 
             {/* 使用ArchiveModal */}
-            <ArchiveModal 
-                isOpen={isArchiveModalOpen} 
-                onClose={() => setIsArchiveModalOpen(false)} 
-                products={products} 
-            />
+            <ArchiveModal isOpen={isArchiveModalOpen} onClose={() => setIsArchiveModalOpen(false)} products={products} />
 
             {/* 使用ExportModal */}
-<ExportModal
-    isOpen={isExportModalOpen}
-    onClose={() => setIsExportModalOpen(false)}
-    products={products}
-/>
+            <ExportModal isOpen={isExportModalOpen} onClose={() => setIsExportModalOpen(false)} products={products} />
+
+            {/* 使用StartInventory */}
+            <StartInventory isOpen={isStartInventoryOpen} onClose={() => setIsStartInventoryOpen(false)} products={products} />
 
             {/* 使用GuideModal */}
             {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
-			
-                <Modal
-				isOpen={isModalOpen} 
-                    title={modalContent.title}
-                    message={modalContent.message}
-                    onClose={() => setIsModalOpen(false)}
-                    type={modalContent.type}
-                />
-           
+
+            <Modal isOpen={isModalOpen} title={modalContent.title} message={modalContent.message} onClose={() => setIsModalOpen(false)} type={modalContent.type} />
+
             {/*合併檔案 *
 
             {isUploadModalOpen && <Modal onClose={() => setUploadModalOpen(false)}/>}
@@ -469,50 +409,23 @@ const App = () => {
                             <button onClick={uploadFiles}>上傳</button>
                             <button onClick={() => setUploadModalOpen(false)}>取消</button>
                         </div> </div></div>*/}
-            )};
+
 
 
             {/* 顯示離線提示框 */}
-            {isUserOffline && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                }}>
-                    <div style={{
-                        backgroundColor: 'white',
-                        padding: '20px',
-                        borderRadius: '10px',
-                        textAlign: 'center'
-                    }}>
-                        <h2>您已離線</h2>
-                        <p>請檢查網絡連線是否正常，或聯繫管理員協助處理。</p>
-                        <button style={{ fontFamily: 'Chocolate Classical Sans' }} onClick={handleReconnect}>重新上線</button>
-                    </div>
-                </div>
+            {isUserOffline && (<div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, }}> <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
+                <h2>您已離線</h2>
+                <p>請檢查網絡連線是否正常，或聯繫管理員協助處理。</p>
+                <button style={{ fontFamily: 'Chocolate Classical Sans' }} onClick={handleReconnect}>重新上線</button>
+            </div>
+            </div>
             )}
-            <footer style={{
-                position: 'fixed',
-                bottom: '0',
-                left: '0',
-                right: '0',
-                textAlign: 'center',
-                padding: '3px',
-                backgroundColor: '#f5f5f5',
-                borderTop: '1px solid #ccc'
-            }}>
+            <footer style={{ position: 'fixed', bottom: '0', left: '0', right: '0', textAlign: 'center', padding: '3px', backgroundColor: '#f5f5f5', borderTop: '1px solid #ccc' }}>
                 <p style={{ margin: '0px' }}>© 2024 edc-pws.com. All rights reserved.</p>
             </footer>
 
-		</>
+        </>
     );
 };
 
-export default App;
+export default App; 
