@@ -16,8 +16,82 @@ h1, h2 {
     z-index: 1000;
 }
 
-/* Scrollbar Styles (Consider using a dedicated scrollbar library) */
-/*  Avoid hardcoded IDs like #style-3. Use a class instead. */
+body {
+    font-family: "Chocolate Classical Sans", sans-serif;
+    font-weight: revert-layer;
+    font-style: normal;
+    width: auto;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    background: #ddd;
+}
+
+.container {
+    max-width: 600px; /* 設定與行動裝置相同的最大寬度 */
+    margin: 0 auto; /* 自動左右邊距 */
+    padding: 0 20px; /* 可選的內邊距 */
+}
+.inventory-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background-color: #ffffff;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    justify-content: center;
+    padding: 10px 0; /* 更好的垂直間距 */
+    z-index: 1000;
+}
+
+.header-container {
+    max-width: 720px; /* 最大寬度設為720px */
+    width: 100%; /* 寬度佔滿 */
+    padding: 0 10px; /* 左右內邊距，保持距離 */
+    margin: 0 auto; /* 使容器居中 */
+}
+
+.header-table {
+    width: 100%; /* 表格寬度佔滿容器 */
+    margin: 0; /* 取消表格的外邊距 */
+    border-radius: 10px;
+}
+
+    td.name {
+        width: auto;
+        padding: 5px;
+        text-align: left;
+    }
+
+    td.spec {
+        padding: 5px;
+        text-align: left;
+    }
+
+
+input[type="number"] {
+    width: 40px;
+    text-align: right;
+}
+
+input[type="date"] {
+    width: 100px;
+}
+
+input.name {
+    width: 50%;
+}
+
+
+input[name="單位"] {
+    width: 60px;
+}
+
+
+
+
 .custom-scrollbar::-webkit-scrollbar-track {
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
     background-color: #ffffff;
@@ -31,43 +105,30 @@ h1, h2 {
 .custom-scrollbar::-webkit-scrollbar-thumb {
     background-color: #666666;
 }
-/* Heart Styles */
+
 
 
 
 /* Header Styles */
-.inventory-header {
+.fixed-header {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    width: 100%;
-    background-color: #ffffff;
-    border-bottom: 1px solid #ccc;
-    display: flex;
-    margin: 0;
-    padding: 0; /* Added padding for better spacing */
-    box-sizing: border-box; /* Include padding in element's total width and height */
-    z-index: 10000;
+    background-color: white; /* 背景設為白色 */
+    z-index: 1000; /* 提高層級，保證固定在上層 */
+    padding: 10px; /* 內部填充 */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* 給予顯示效果 */
 }
 
-.header-container {
-    max-width: 674.18px; /*  Consider using percentages or ems for better responsiveness */
-    margin: 0 auto;
-    width: 100%;
-    padding: 0; /* Consistent padding */
-    box-sizing: border-box;
+
+
+.table-container {
+    margin-top: 120px; /* 根據您固定標題的實際高度調整此值，以避免表格內容被遮蓋 */
+    overflow-y: auto; /* 使表格內容可滾動 */
+    max-height: calc(100vh - 120px); /* 減去固定標題行的高度，以確保表格容器可滾動區域 */
 }
 
-.header-table {
-    width: 100%; /* Removed extra width */
-    padding: 0;
-    margin: 10px 0;
-}
-
-    .header-table th, .header-table td {
-        padding: 0;
-    }
 
 .header-button {
     font-family: 'Chocolate Classical Sans';
@@ -75,19 +136,6 @@ h1, h2 {
 }
 
 
-/* Table Styles */
-/*.inventory-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 20px auto; 
-    max-width: 1200px;
-}
-
-    .inventory-table th, .inventory-table td {
-        border: 2px solid #eee;
-        padding: 8px;
-    }
-    */
 /* Media Query for Mobile (Hide Product Code) */
 @media (max-width: 767px) { /* Adjust breakpoint as needed */
     .product-code {
@@ -129,17 +177,18 @@ h1, h2 {
 
 
 
-table {
+.table {
     background: #f5f5f5;
-    border-collapse: separate;
     box-shadow: inset 0 1px 0 #fff;
-
-    margin: 30px auto;
-    text-align: left;
     width: 100%;
-
-    margin: 10px auto;
-    max-width: 1200px;
+    max-width: 720px; /* 確保底部表格的最大寬度為720px */
+    margin: 20px auto; /* 自動居中，並設置上下邊距 */
+    max-height: 100%;
+    overflow: auto;
+    display: block;
+    border-collapse: collapse;
+    border: 1px solid #ccc;
+    border-radius: 10px;
 }
 
 th {
@@ -151,9 +200,13 @@ th {
     box-shadow: inset 0 1px 0 #999;
     color: #fff;
     font-weight: bold;
-    padding: 10px ;
-    position: relative;
     text-shadow: 0 1px 0 #000;
+    padding: 2.5px 10px;
+    position: sticky;
+    top: 0;
+    background-color: #ffffff; /* 設置背景色確保滾動時標題行看起來正確 */
+    z-index: 10;
+    border-radius: 3px;
 }
 
     th:after {
@@ -182,9 +235,11 @@ td {
     border-left: 1px solid #e8e8e8;
     border-top: 1px solid #fff;
     border-bottom: 1px solid #e8e8e8;
-    padding: 10px;
+    padding: 5px 10px;
     position: relative;
     transition: all 300ms;
+    border-radius: 3px;
+    background-color: #ffffff; /* 設置背景色確保滾動時標題行看起來正確 */
 }
 
     td:first-child {

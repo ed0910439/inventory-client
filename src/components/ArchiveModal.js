@@ -15,7 +15,7 @@ const ArchiveModal = ({ isOpen, onClose, products }) => {
         }
 
         try {
-            const response = await axios.post('http://localhost:4000/api/archive', {
+            const response = await axios.post(`http://localhost:4000/api/archive`, {
                 year, month, password
             });
 

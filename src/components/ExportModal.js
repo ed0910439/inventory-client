@@ -57,7 +57,7 @@ const ExportModal = ({ isOpen, onClose, products }) => {
             { header: '商品名称', key: '商品名稱', width: 30 },
             { header: '数量', key: '數量', width: 10 },
             { header: '单位', key: '單位', width: 10 },
-            { header: '盘点日期', key: '盤點日期', width: 15 }
+            { header: '盘點日期', key: '盤點日期', width: 15 }
 
         ];
         // 計算該月的最後一天

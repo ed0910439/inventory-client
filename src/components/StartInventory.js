@@ -1,80 +1,72 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-function StartInventory() {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+function StartInventory({ isOpen, onClose }) {
     const [inventoryTemplate, setInventoryTemplate] = useState(null);
     const [initialStockData, setInitialStockData] = useState(null);
-    const [uploadError, setUploadError] = useState(''); // ¿ù»~°T®§
+    const [uploadError, setUploadError] = useState('');
 
-
+    if (!isOpen) return null;
+    // è™•ç†ç›¤é»æ¨¡æ¿æª”æ¡ˆè®Šæ›´
     const handleInventoryTemplateChange = (e) => {
         setInventoryTemplate(e.target.files[0]);
     };
 
+    // è™•ç†æœŸåˆåº«å­˜æ•¸æ“šæª”æ¡ˆè®Šæ›´
     const handleInitialStockDataChange = (e) => {
         setInitialStockData(e.target.files[0]);
     };
 
-
+    // æäº¤è¡¨å–®è™•ç†
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setUploadError(''); // ²M°£¤§«eªº¿ù»~°T®§
+        setUploadError(''); // æ¸…é™¤ä¹‹å‰çš„éŒ¯èª¤è¨Šæ¯
 
         if (!inventoryTemplate || !initialStockData) {
-            setUploadError('½Ğ¿ï¾Ü½LÂI¼ÒªO©M´Áªì¼Æ¾ÚÀÉ®×');
+            setUploadError('è«‹é¸æ“‡ç›¤é»æ¨¡æ¿å’ŒæœŸåˆæ•¸æ“šæª”æ¡ˆ');
             return;
         }
-
 
         const formData = new FormData();
         formData.append('inventoryTemplate', inventoryTemplate);
         formData.append('initialStockData', initialStockData);
 
         try {
-            const response = await axios.post('/api/startInventory', formData, {
+            const response = await axios.post(`http://localhost:4000/api/startInventory`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-            console.log('¤W¶Ç¦¨¥\:', response.data);
-            alert('½LÂI¼Æ¾Ú¤w¦¨¥\¤W¶Ç!');
-            setIsModalOpen(false); // Ãö³¬¼uµ¡
+            console.log('ä¸Šå‚³æˆåŠŸ:', response.data);
+            alert('ç›¤é»æ•¸æ“šå·²æˆåŠŸä¸Šå‚³!');
+            // æ¸…é™¤é¸æ“‡çš„æª”æ¡ˆ
+            setInventoryTemplate(null);
+            setInitialStockData(null);
+            setIsModalOpen(false); // é—œé–‰å½ˆçª—
 
         } catch (error) {
-            console.error('¤W¶Ç¥¢±Ñ:', error);
-            setUploadError(error.response ? error.response.data.error : '¤W¶Ç¥¢±Ñ¡A½Ğµy«á¦A¸Õ');
+            console.error('ä¸Šå‚³å¤±æ•—:', error);
+            setUploadError(error.response ? error.response.data.error : 'ä¸Šå‚³å¤±æ•—ï¼Œè«‹ç¨å¾Œå†è©¦');
         }
     };
 
-
-
     return (
-        <div>
-            <button onClick={() => setIsModalOpen(true)}>¶}©l½LÂI</button>
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" id="style-3" onClick={(e) => e.stopPropagation()}>
 
-            {/* ¼uµ¡ */}
-            {isModalOpen && (
-                <div className="modal">
-                    <div className="modal-content">
-                        <h2>¶}©l½LÂI</h2>
-                        <form onSubmit={handleSubmit}>
-                            <p>
-                                ½LÂI¼ÒªO¡G
-                                <input type="file" accept=".xls,.xlsx" onChange={handleInventoryTemplateChange} required />
-                            </p>
-                            <p>
-                                ´Áªì¼Æ¾Ú¡G
-                                <input type="file" accept=".xls,.xlsx" onChange={handleInitialStockDataChange} required />
-                            </p>
-                            {uploadError && <p style={{ color: 'red' }}>{uploadError}</p>}
-                            <button type="submit">¤W¶Ç</button>
-                            <button onClick={() => setIsModalOpen(false)}>¨ú®ø</button>
-                        </form>
-                    </div>
-                </div>
-            )}
-
+                <h2 style={{ fontFamily: 'Chocolate Classical Sans, sans-serif'}}>é–‹å§‹ç›¤é»</h2>
+                <form onSubmit={handleSubmit}>
+                    <p>ç›¤é»æ¨¡æ¿ï¼š<input type="file" accept=".xls,.xlsx" onChange={handleInventoryTemplateChange} required />
+                    </p>
+                    <p>
+                        æœŸåˆæ•¸æ“šï¼š
+                        <input type="file" accept=".xls,.xlsx" onChange={handleInitialStockDataChange} required />
+                    </p>
+                    {uploadError && <p style={{ color: 'red' }}>{uploadError}</p>}
+                    <button type="submit">ä¸Šå‚³</button>
+                    <button type="button" onClick={onClose}>å–æ¶ˆ</button>
+                </form>
+            </div>
         </div>
     );
 }
