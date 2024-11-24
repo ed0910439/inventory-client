@@ -3,6 +3,18 @@ h1, h2 {
     margin: 0;
 }
 
+body {
+    font-family: "Chocolate Classical Sans", sans-serif;
+    font-weight: normal; /* 使用 'normal' 而非 'revert-layer' */
+    font-style: normal;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    background: #ddd; /* 背景色 */
+    width: auto; /* 寬度自動 */
+}
+
+/* Modal Styles */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -16,22 +28,7 @@ h1, h2 {
     z-index: 1000;
 }
 
-body {
-    font-family: "Chocolate Classical Sans", sans-serif;
-    font-weight: revert-layer;
-    font-style: normal;
-    width: auto;
-    display: flex;
-    justify-content: center;
-    text-align: center;
-    background: #ddd;
-}
-
-.container {
-    max-width: 600px; /* 設定與行動裝置相同的最大寬度 */
-    margin: 0 auto; /* 自動左右邊距 */
-    padding: 0 20px; /* 可選的內邊距 */
-}
+/* Inventory Header Styles */
 .inventory-header {
     position: fixed;
     top: 0;
@@ -44,56 +41,80 @@ body {
     justify-content: center;
     padding: 10px 0; /* 更好的垂直間距 */
     z-index: 1000;
-}
+    }
 
 .header-container {
     max-width: 720px; /* 最大寬度設為720px */
     width: 100%; /* 寬度佔滿 */
-    padding: 0 10px; /* 左右內邊距，保持距離 */
+    padding: 0 5px; /* 左右內邊距 */
     margin: 0 auto; /* 使容器居中 */
 }
 
+/* Table Styles */
 .header-table {
     width: 100%; /* 表格寬度佔滿容器 */
-    margin: 0; /* 取消表格的外邊距 */
-    border-radius: 10px;
+    margin: 0;
+    border: none; /* 明確設置無邊框 */
+    box-shadow: none;
 }
-
-    td.name {
+    td.header-table {
+        text-align: left;
+        border: none; /* 明確設置無邊框 */
+        box-shadow: none;
+    }
+    td.header-table.right {
+        text-align: right;
+        border: none; /* 明確設置無邊框 */
+        box-shadow: none;
+    }
+td.name {
         width: auto;
         padding: 5px;
         text-align: left;
     }
 
-    td.spec {
-        padding: 5px;
-        text-align: left;
+td.spec {
+    padding: 5px;
+    text-align: left;
+}
+
+/* Button Styles */
+button {
+    border-radius: 8px;
+    background-color: darkgray;
+    padding: 5px 10px;
+    border: none; /* 明確設置無邊框 */
+    margin: 0 3px 0 0;
+}
+
+/* Input Styles */
+input {
+    border-radius: 3px;
+    border: solid; /* 明確設置無邊框 */
+    border-width: 0.1px;
+    height: 18px;
+    padding:0.5px 3px;
+}
+
+    input[type="number"] {
+        width: 40px;
+        text-align: right;
     }
 
+    input[type="date"] {
+        width: 100px;
+    }
 
-input[type="number"] {
-    width: 40px;
-    text-align: right;
-}
+    input.name {
+        width: 50%; /* 設置特定類型的輸入框寬度 */
+    }
 
-input[type="date"] {
-    width: 100px;
-}
+    input[name="單位"] {
+        width: 60px;
+    }
 
-input.name {
-    width: 50%;
-}
-
-
-input[name="單位"] {
-    width: 60px;
-}
-
-
-
-
+/* Scrollbar Styles */
 .custom-scrollbar::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
     background-color: #ffffff;
 }
 
@@ -106,44 +127,116 @@ input[name="單位"] {
     background-color: #666666;
 }
 
-
-
-
-/* Header Styles */
+/* Fixed Header Styles */
 .fixed-header {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     background-color: white; /* 背景設為白色 */
-    z-index: 1000; /* 提高層級，保證固定在上層 */
-    padding: 10px; /* 內部填充 */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* 給予顯示效果 */
+    z-index: 1000;
+    padding: 10px 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* 提供顯示效果 */
 }
 
-
-
+/* Table Container Styles */
 .table-container {
-    margin-top: 120px; /* 根據您固定標題的實際高度調整此值，以避免表格內容被遮蓋 */
+    margin-top: 120px; /* 根據固定標題的實際高度調整此值 */
     overflow-y: auto; /* 使表格內容可滾動 */
-    max-height: calc(100vh - 120px); /* 減去固定標題行的高度，以確保表格容器可滾動區域 */
+    max-height: calc(100vh - 120px); /* 確保表格可滾動區域 */
+    border-radius: 10px;
 }
 
-
-.header-button {
-    font-family: 'Chocolate Classical Sans';
-    margin: 5px 5px 0 0; /* Simplified margin */
+/* Filter Bubble Styles */
+.filter-bubble {
+    width: 300px; /* 調整寬度 */
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100px); /* 調整動畫效果 */
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
 }
 
+    .filter-bubble.show {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+/* Table Styles */
+.in-table {
+    background: #f5f5f5;
+    box-shadow: inset 0 1px 0 #fff;
+    width: 100%;
+    max-width: 720px; /* 確保底部表格的最大寬度為720px */
+    margin: 20px auto; /* 自動居中，上下邊距 */
+    max-height: 100%;
+    overflow: auto;
+    display: block;
+    border-collapse: collapse;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+}
+
+/* Table Header Styles */
+.in-th {
+    background: url(https://jackrugile.com/images/misc/noise-diagonal.png), linear-gradient(#777, #444);
+    box-shadow: inset 0 1px 0 #999;
+    color: #fff;
+    font-weight: bold;
+    text-shadow: 0 1px 0 #000;
+    padding: 7px 10px;
+    position: sticky;
+    top: 0;
+    background-color: #ffffff; /* 滾動時固定標題行正常顯示背景 */
+    z-index: 10;
+    border-radius: 0px;
+}
+
+/* Table Cell Styles */
+.in-td {
+    border-right: 1px solid #fff;
+    border-left: 1px solid #e8e8e8;
+    border-top: 1px solid #fff;
+    border-bottom: 1px solid #e8e8e8;
+    padding: 5px 10px;
+    position: relative;
+    transition: all 300ms;
+    border-radius: 3px;
+    background-color: #ffffff; /* 背景色 */
+}
+
+/* Row Styles */
+tr {
+    background: url(https://jackrugile.com/images/misc/noise-diagonal.png);
+}
+    /* Last Row Styles */
+    tr:last-of-type td {
+        box-shadow: inset 0 -1px 0 #fff;
+    }
+
+        tr:last-of-type td:first-child {
+            box-shadow: inset 1px -1px 0 #fff;
+        }
+
+        tr:last-of-type td:last-child {
+            box-shadow: inset -1px -1px 0 #fff;
+        }
 
 /* Media Query for Mobile (Hide Product Code) */
-@media (max-width: 767px) { /* Adjust breakpoint as needed */
+@media (max-width: 767px) {
     .product-code {
-        display: none;
+        display: none; /* 移除產品編號在行動裝置上 */
+    }
+
+    .container {
+        width: 100%; /* 使用設備的完整寬度 */
+        padding: 10px;
     }
 }
 
-/* Responsive Modal Styles (Use a more flexible approach) */
+/* Responsive Modal Styles */
 @media (min-width: 600px) {
     .modal-content {
         max-width: calc(100% - 20%);
@@ -158,115 +251,11 @@ input[name="單位"] {
     }
 }
 
-.filter-bubble {
-    /*  移除之前的 fixed 和其他的樣式，讓它在 modal-content 內部佔滿空間 */
-    width: 300px; /* 調整寬度 */
-    display: flex;
-    flex-direction: column;
-    transform: translateY(100px); /*  調整動畫效果 */
-    opacity: 0;
-    pointer-events: none;
-    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out; /*  加入opacity transition */
+/* 微電腦樣式 */
+@media (min-width: 768px) {
+    .container {
+        max-width: 720px; /* 設置最大寬度為720px */
+        margin: auto; /* 水平置中 */
+        padding: 10px;
+    }
 }
-
-    .filter-bubble.show {
-        transform: translateY(0);
-        opacity: 1;
-        pointer-events: auto;
-    }
-
-
-
-.table {
-    background: #f5f5f5;
-    box-shadow: inset 0 1px 0 #fff;
-    width: 100%;
-    max-width: 720px; /* 確保底部表格的最大寬度為720px */
-    margin: 20px auto; /* 自動居中，並設置上下邊距 */
-    max-height: 100%;
-    overflow: auto;
-    display: block;
-    border-collapse: collapse;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-}
-
-th {
-    background: url(https://jackrugile.com/images/misc/noise-diagonal.png), linear-gradient(#777, #444);
-    border-left: 1px solid #555;
-    border-right: 1px solid #777;
-    border-top: 1px solid #555;
-    border-bottom: 1px solid #333;
-    box-shadow: inset 0 1px 0 #999;
-    color: #fff;
-    font-weight: bold;
-    text-shadow: 0 1px 0 #000;
-    padding: 2.5px 10px;
-    position: sticky;
-    top: 0;
-    background-color: #ffffff; /* 設置背景色確保滾動時標題行看起來正確 */
-    z-index: 10;
-    border-radius: 3px;
-}
-
-    th:after {
-        background: linear-gradient(rgba(255,255,255,0), rgba(255,255,255,.08));
-        content: '';
-        display: block;
-        height: 25%;
-        left: 0;
-        margin: 1px 0 0 0;
-        position: absolute;
-        top: 25%;
-        width: 100%;
-    }
-
-    th:first-child {
-        border-left: 1px solid #777;
-        box-shadow: inset 1px 1px 0 #999;
-    }
-
-    th:last-child {
-        box-shadow: inset -1px 1px 0 #999;
-    }
-
-td {
-    border-right: 1px solid #fff;
-    border-left: 1px solid #e8e8e8;
-    border-top: 1px solid #fff;
-    border-bottom: 1px solid #e8e8e8;
-    padding: 5px 10px;
-    position: relative;
-    transition: all 300ms;
-    border-radius: 3px;
-    background-color: #ffffff; /* 設置背景色確保滾動時標題行看起來正確 */
-}
-
-    td:first-child {
-        box-shadow: inset 1px 0 0 #fff;
-    }
-
-    td:last-child {
-        border-right: 1px solid #e8e8e8;
-        box-shadow: inset -1px 0 0 #fff;
-    }
-
-tr {
-    background: url(https://jackrugile.com/images/misc/noise-diagonal.png);
-}
-
-    tr:nth-child(odd) td {
-        background: #f1f1f1 url(https://jackrugile.com/images/misc/noise-diagonal.png);
-    }
-
-    tr:last-of-type td {
-        box-shadow: inset 0 -1px 0 #fff;
-    }
-
-        tr:last-of-type td:first-child {
-            box-shadow: inset 1px -1px 0 #fff;
-        }
-
-        tr:last-of-type td:last-child {
-            box-shadow: inset -1px -1px 0 #fff;
-        }	

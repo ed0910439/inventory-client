@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-function FilterModal({ products, onFilterChange }) {
+function FilterModal({ isOpen, onClose, products, onFilterChange }) {
     const [selectedVendors, setSelectedVendors] = useState([]);
     const [selectedLayers, setSelectedLayers] = useState([]);
     const allVendors = ['全台', '央廚', '王座', '忠欣', '開元', '裕賀', '美食家', '點線麵'];
@@ -31,6 +31,7 @@ function FilterModal({ products, onFilterChange }) {
             prev.includes(layer) ? prev.filter((l) => l !== layer) : [...prev, layer]
         );
     };
+    
 
     return (
         <div className="modal-overlay" ref={overlayRef}>

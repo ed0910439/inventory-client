@@ -5,6 +5,7 @@ function StartInventory({ isOpen, onClose }) {
     const [inventoryTemplate, setInventoryTemplate] = useState(null);
     const [initialStockData, setInitialStockData] = useState(null);
     const [uploadError, setUploadError] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     if (!isOpen) return null;
     // 處理盤點模板檔案變更
@@ -32,7 +33,7 @@ function StartInventory({ isOpen, onClose }) {
         formData.append('initialStockData', initialStockData);
 
         try {
-            const response = await axios.post(`http://localhost:4000/api/startInventory`, formData, {
+            const response = await axios.post(`https://inventory.edc-pws.com/api/startInventory`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
@@ -49,6 +50,7 @@ function StartInventory({ isOpen, onClose }) {
             setUploadError(error.response ? error.response.data.error : '上傳失敗，請稍後再試');
         }
     };
+    if (!isOpen) return null;
 
     return (
         <div className="modal-overlay" onClick={onClose}>

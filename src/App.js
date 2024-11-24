@@ -13,7 +13,7 @@ import BouncyComponent from './BouncyComponent';
 import StartInventory from './components/StartInventory';
 
 
-const socket = io('http://localhost:4000'); // 根据需要可能更改
+const socket = io('https://inventory.edc-pws.com'); // 根据需要可能更改
 
 // 样式定義
 const App = () => {
@@ -54,7 +54,7 @@ const App = () => {
     const [password, setPassword] = useState('');
     const [modalVisible, setModalVisible] = useState(false);
     const [isStartInventoryOpen, setIsStartInventoryOpen] = useState(false);
-
+    const [isFilterVisible, setIsFilterVisible] = useState(false);
     const [isUploadModalOpen, setUploadModalOpen] = useState(false);
     const [files, setFiles] = useState({
         stock: null,
@@ -70,7 +70,7 @@ const App = () => {
             setLoading(true); // 開始載入，設置狀態
 
             try {
-                const response = await axios.get(`http://localhost:4000/api/products`);
+                const response = await axios.get(`https://inventory.edc-pws.com/api/products`);
                 setProducts(response.data);
                 setConnectionStatus('連接成功 ✔');
                 setLoading(false); // 載入完成，更新狀態
@@ -109,7 +109,7 @@ const App = () => {
         };
         const fetchInitialStockData = async () => {
             try {
-                const response = await axios.get(`http://localhost:4000/archive/originaldata`);
+                const response = await axios.get(`https://inventory.edc-pws.com/archive/originaldata`);
                 const initialStockMap = {};
                 response.data.forEach(item => {
                     initialStockMap[item.商品編號] = item.數量; // 儲存成物件以便查詢
@@ -216,7 +216,7 @@ const App = () => {
     //下載最新數量
     const updateQuantity = async (productCode, quantity) => {
         try {
-            await axios.put(`http://localhost:4000/api/products/${productCode}/quantity`, { 數量: quantity });
+            await axios.put(`https://inventory.edc-pws.com/api/products/${productCode}/quantity`, { 數量: quantity });
         } catch (error) {
             console.error("更新產品時出錯:", error);
         }
@@ -224,7 +224,7 @@ const App = () => {
     //下載最新校期
     const updateExpiryDate = async (productCode, expiryDate) => {
         try {
-            await axios.put(`http://localhost:4000/api/products/${productCode}/expiryDate`, { 到期日: expiryDate });
+            await axios.put(`https://inventory.edc-pws.com/api/products/${productCode}/expiryDate`, { 到期日: expiryDate });
         } catch (error) {
             console.error("更新到期日時出錯:", error);
         }
@@ -272,21 +272,21 @@ const App = () => {
                         <table className="header-table">
                         <thead>
                             <tr>
-                                <td colSpan="2" style={{ textAlign: 'center' }}>
+                                    <td colSpan="2" >
                                     <h1 >庫存盤點系統</h1>
                                 </td>
-                                <td  rowSpan="2" style={{ textAlign: 'right' }}>
+                                    <td rowSpan="2" className="header-table.right">
                                     <button className="header-button" onClick={() => setShowGuide(true)}>說明</button>
                                     <button className="header-button" onClick={() => setIsArchiveModalOpen(true)}>歸檔</button>
                                     <button className="header-button" onClick={() => setIsProductModalOpen(true)}>缺漏</button>
                                     <br />
                                     <button className="header-button" onClick={() => setIsExportModalOpen(true)}>匯出</button>
-                                    <button className="header-button" onClick={() => setIsFilterVisible(true)}>篩選</button>
+                                        <button className="header-button" onClick={() => setIsFilterModalOpen(true)}>篩選</button>
                                     <button className="header-button" onClick={() => setUploadModalOpen(true)}>匯總報表</button>
                                 </td>
                             </tr>
                             <tr>
-                                <td colSpan="2" style={{ fontSize: '1em', textAlign: 'center' }}>
+                                    <td colSpan="2" className="header-table.left" style={{ fontSize: '1em'}}>
                                     {connectionStatus} | 在線共<strong>{userCount}</strong>人
                                 </td>
                             </tr>
@@ -300,9 +300,8 @@ const App = () => {
             <br />
             <br />
             <br />
-            <br />
             {/* 固定的表頭 */}
-                <table  className="table">
+                <table  className="in-table">
                     <thead>
                         <tr>
                             <th className="th">商品編號</th>
@@ -317,11 +316,11 @@ const App = () => {
                         {filteredProducts.map((product, index) => (
                             product.廠商 !== '#N/A' && (
                                 <tr key={product.商品編號}>
-                                    <td className="td">{product.商品編號}</td>
-                                    <td className="td" onMouseEnter={(e) => handleMouseEnter(product, e)} onMouseLeave={handleMouseLeave}>{product.商品名稱}</td>
-                                    <td className="td"><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyDown={(e) => handleKeyPress(e, index)} data-index={index} required /></td>
-                                    <td className="td">{product.單位}</td>
-                                    <td className="td"><input className='date' type="date" value={product.到期日 ? new Date(product.到期日).toISOString().split('T')[0] : ""} onChange={(e) => handleExpiryDateChange(product.商品編號, e.target.value)} disabled={disabledVendors.includes(product.廠商)} /></td>
+                                    <td className="in-td">{product.商品編號}</td>
+                                    <td className="in-td" onMouseEnter={(e) => handleMouseEnter(product, e)} onMouseLeave={handleMouseLeave}>{product.商品名稱}</td>
+                                    <td className="in-td"><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyDown={(e) => handleKeyPress(e, index)} data-index={index} required /></td>
+                                    <td className="in-td">{product.單位}</td>
+                                    <td className="in-td"><input className='date' type="date" value={product.到期日 ? new Date(product.到期日).toISOString().split('T')[0] : ""} onChange={(e) => handleExpiryDateChange(product.商品編號, e.target.value)} disabled={disabledVendors.includes(product.廠商)} /></td>
                                 </tr>
                             )))}
                     </tbody>
@@ -378,7 +377,7 @@ const App = () => {
             {showToast && (<div style={{ position: 'fixed', top: '20px', right: '20px', backgroundColor: '#4caf50', color: 'white', padding: '10px', borderRadius: '5px', boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)', zIndex: 1000, }}> {newMessage} </div>
             )}
             {/* 使用ProductModal */}
-            <ProductModal isOpen={isProductModalOpen} onClose={() => setIsProductModalOpen(false)} setProducts={setProducts} />
+            <ProductModal isOpen={isProductModalOpen} onClose={() => setIsProductModalOpen(false)} products={products} setProducts={setProducts} />
 
             {/* 使用ArchiveModal */}
             <ArchiveModal isOpen={isArchiveModalOpen} onClose={() => setIsArchiveModalOpen(false)} products={products} />
