@@ -1,16 +1,19 @@
-// generate-version.js
 const fs = require('fs');
 const path = require('path');
 
-// Åª¨ú package.json
+const dir = path.join(__dirname, 'build');
+if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true }); // ç¢ºä¿ç›®éŒ„å­˜åœ¨
+}
+// Ã…ÂªÂ¨Ãº package.json
 const packageJson = require('./package.json');
 
-// ´£¨úª©¥»¸¹
+// Â´Â£Â¨ÃºÂªÂ©Â¥Â»Â¸Â¹
 const version = {
     version: packageJson.version
 };
 
-// ±Nª©¥»¸¹¼g¤J version.json
+// Â±NÂªÂ©Â¥Â»Â¸Â¹Â¼gÂ¤J version.json
 const filePath = path.join(__dirname, 'build', 'version.json');
 fs.writeFileSync(filePath, JSON.stringify(version, null, 2));
 
