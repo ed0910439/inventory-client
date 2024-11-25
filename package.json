@@ -1,11 +1,11 @@
 {
   "name": "inventory-client",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "",
   "main": "App.js",
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "node generate-version.js && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

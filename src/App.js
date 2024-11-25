@@ -29,6 +29,7 @@ const App = () => {
     const [connectionStatus, setConnectionStatus] = useState('Disconnected');
     const [showGuide, setShowGuide] = useState(false); // 控制顯示說明手冊
     const [isUserOffline, setIsUserOffline] = useState(false); // 控制顯示離線提示框
+    const [isReconnectPromptVisible, setIsReconnectPromptVisible] = useState(false);
     const idleTimeout = 600000; // 閒置10分鐘 （600,000毫秒）
     const [modalContent, setModalContent] = useState({});
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -85,28 +86,24 @@ const App = () => {
         };
         const fetchVersion = async () => {
             try {
-                const response = await axios.get('./version.json'); // 獲取最新版本號
-                const serverVersion = response.data.version;
-                const localVersion = '1.0.5'; // 當前應用版本號
+                const response = await fetch('/version.json'); // 獲取最新版本號
+                const data = await response.json();
+                const serverVersion = data.version;
+                const localVersion = '1.0.6'; // 當前應用版本號
+
                 if (serverVersion !== localVersion) {
                     setModalContent({
                         title: '版本更新',
                         message: '有新版本可用！請將頁面重新整理！',
-                        type: 'warning', // 或 `success` 根據需要調整
+                        type: 'warning', // 可以根據需要進行調整
                     });
                     setIsModalOpen(true);
                 }
             } catch (error) {
                 console.error('取得版本更新失敗:', error);
-                setModalContent({
-                    title: '錯誤',
-                    message: '無法獲取版本更新訊息。',
-                    type: 'error',
-                });
-                // setIsModalOpen(true);   
-
             }
         };
+
         const fetchInitialStockData = async () => {
             try {
                 const response = await axios.get(`https://inventory.edc-pws.com/archive/originaldata`);
@@ -122,6 +119,7 @@ const App = () => {
         fetchInitialStockData();
         fetchProducts();
         fetchVersion();
+
 
 
         // 監聽連接的用戶數更新
@@ -151,7 +149,8 @@ const App = () => {
             if (timer) clearTimeout(timer);
             timer = setTimeout(() => {
                 socket.disconnect(); // 確保在計時器到期時斷開連接
-                setConnectionStatus('失去連線 ❌');
+                setConnectionStatus('失去連線 ❌'); 
+                setIsReconnectPromptVisible(true); // 顯示重新上線的提示框
                 setIsUserOffline(true);
             }, idleTimeout); // 使用閒置時間
         };
@@ -186,8 +185,13 @@ const App = () => {
         socket.connect(); // 重新連接socket
         setConnectionStatus('連接成功 ✔');
         setIsUserOffline(false);
-    };
+        setIsReconnectPromptVisible(false);
+        window.location.reload(); // 重新整頁
 
+    };
+    const handleReload = () => {
+        window.location.reload(); // 重新加載頁面
+    };
     /*const handleBlur = () => {
         setHoveredProduct(null);
         setInitialStock('');
@@ -273,7 +277,8 @@ const App = () => {
         setCurrentSpec(''); // 清除規格數據
     };
     return (
-        <>
+        <div className="app">
+
             {/* 固定的標題區域 */}
             <div className="inventory-header">
                 <div className="fixed-header">
@@ -290,7 +295,7 @@ const App = () => {
                                     <button className="header-button" onClick={() => setIsProductModalOpen(true)}>缺漏</button>
                                     <br />
                                     <button className="header-button" onClick={() => setIsExportModalOpen(true)}>匯出</button>
-                                        <button id="butter-code" className="header-button" onClick={() => setIsFilterModalOpen(true)}>篩選</button>
+                                    <button id="butter-code" className="header-button" onClick={() => setIsFilterModalOpen(true)}>篩選</button>
                                     <button className="header-button" onClick={() => setUploadModalOpen(true)}>匯總報表</button>
                                 </td>
                             </tr>
@@ -424,7 +429,16 @@ const App = () => {
             {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
 
             <Modal isOpen={isModalOpen} title={modalContent.title} message={modalContent.message} onClose={() => setIsModalOpen(false)} type={modalContent.type} />
-
+            {/* 新版本 */}
+            {isModalOpen && (
+                <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <h2>{modalContent.title}</h2>
+                        <p>{modalContent.message}</p>
+                        <button onClick={handleReload}>重整頁面</button>
+                    </div>
+                </div>
+            )}
             
 
 
@@ -438,11 +452,21 @@ const App = () => {
                     </div>
                 </div>
             )}
+            {/* 閒置提示框，顯示重新上線按鈕 */}
+            {isReconnectPromptVisible && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h2>閒置中斷線</h2>
+                        <p>您已閒置超過10分鐘，請重新連接。</p>
+                        <button onClick={handleReconnect}>重新上線</button>
+                    </div>
+                </div>
+            )}
             <footer style={{ position: 'fixed', bottom: '0', left: '0', right: '0', textAlign: 'center', padding: '3px', backgroundColor: '#f5f5f5', borderTop: '1px solid #ccc' }}>
                 <p style={{ margin: '0px' }}>© 2024 edc-pws.com. All rights reserved.</p>
             </footer>
 
-        </>
+        </div>
     );
 };
 
