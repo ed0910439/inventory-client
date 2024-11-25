@@ -28,7 +28,6 @@
     "@babel/plugin-transform-private-property-in-object": "^7.25.9",
     "@babel/preset-env": "^7.25.7",
     "@babel/preset-react": "^7.25.7",
-    "babel-loader": "^9.2.1",
     "wrangler": "^3.86.0",
     "react-scripts": "4.0.3", 
     "eslint": "^7.32.0", 
@@ -41,7 +40,7 @@
     ]
   },
   "browserslist": {
-    "production": [
+    "production": 
       ">0.2%",
       "not dead",
       "not op_mini all"
