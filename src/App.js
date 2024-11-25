@@ -1,8 +1,8 @@
 //App.js
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
-import { saveAs } from 'file-saver';
-import ExcelJS from 'exceljs';
+//import { saveAs } from 'file-saver';
+//import ExcelJS from 'exceljs';
 import io from 'socket.io-client';
 import ExportModal from './components/ExportModal';
 import ProductModal from './components/ProductModal';
@@ -18,7 +18,7 @@ const socket = io('https://inventory.edc-pws.com'); // 根据需要可能更改
 // 样式定義
 const App = () => {
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-    const [latestVersion, setLatestVersion] = useState(null);
+//    const [latestVersion, setLatestVersion] = useState(null);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true); // 載入狀態
     const [initialStockData, setInitialStockData] = useState({}); // 存儲期初庫存
@@ -38,33 +38,33 @@ const App = () => {
     const [hoveredProduct, setHoveredProduct] = useState(null); // 懸停的商品編號
     const [initialStock, setInitialStock] = useState(''); // 用於顯示期初庫存量
     const [currentSpec, setCurrentSpec] = useState(''); // 用於顯示規格
-    const [showOfflineWarning, setShowOfflineWarning] = useState(false);
-    const [isOfflineMode, setIsOfflineMode] = useState(false);
+//    const [showOfflineWarning, setShowOfflineWarning] = useState(false);
+//    const [isOfflineMode, setIsOfflineMode] = useState(false);
     const inputRefs = useRef([]); // 用於儲存每個輸入框的引用
     const [socketId, setSocketId] = useState('');
     const filterRef = useRef(null);
     const allVendors = ['全台', '央廚', '王座', '王座-食', '忠欣', '開元', '裕賀', '美食家', '點線麵']; // 所有廠商
-    const [disabledVendors, setDisabledVendors] = useState(['忠欣', '王座']); // 例如，禁用 '全台' 和 '央廚' 廠商的到期日輸入
+    const disabledVendors = useState(['忠欣', '王座']); // 例如，禁用 '全台' 和 '央廚' 廠商的到期日輸入
 
-    const [year, setYear] = useState('');
-    const [month, setMonth] = useState('');
+//    const [year, setYear] = useState('');
+//    const [month, setMonth] = useState('');
     const [userCount, setUserCount] = useState(0); // 用於存儲線上人數
-    const [initialUnit, setInitialUnit] = useState(''); // 用於存儲期初庫存量
+//    const [initialUnit, setInitialUnit] = useState(''); // 用於存儲期初庫存量
     const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 }); // 記錄工具提示的位置
-    const [password, setPassword] = useState('');
-    const [modalVisible, setModalVisible] = useState(false);
+//    const [password, setPassword] = useState('');
+//   const [modalVisible, setModalVisible] = useState(false);
     const [isStartInventoryOpen, setIsStartInventoryOpen] = useState(false);
-    const [isFilterVisible, setIsFilterVisible] = useState(false);
-    const [isUploadModalOpen, setUploadModalOpen] = useState(false);
-    const [files, setFiles] = useState({
+ //   const [isFilterVisible, setIsFilterVisible] = useState(false);
+    const setUploadModalOpen = useState(false);
+/*    const [files, setFiles] = useState({
         stock: null,
         currentMonth: null,
         initialStock: null,
         finalStock: null,
         outTransfer: null,
         inTransfer: null,
-    });
-
+    });*/
+    
     useEffect(() => {
         const fetchProducts = async () => {
             setLoading(true); // 開始載入，設置狀態
@@ -150,14 +150,21 @@ const App = () => {
         const resetTimer = () => {
             if (timer) clearTimeout(timer);
             timer = setTimeout(() => {
+                socket.disconnect(); // 確保在計時器到期時斷開連接
                 setConnectionStatus('失去連線 ❌');
                 setIsUserOffline(true);
-            }, idleTimeout);
+            }, idleTimeout); // 使用閒置時間
         };
 
         // 註冊用戶活動事件來重置計時器
         window.addEventListener('mousemove', resetTimer);
         window.addEventListener('keydown', resetTimer);
+
+        socket.on('connect', () => {
+            resetTimer();
+            setConnectionStatus('連接成功 ✔');
+            setIsUserOffline(false);
+        });
 
         resetTimer(); // 初始重置計時器
 
@@ -171,18 +178,20 @@ const App = () => {
             window.removeEventListener('mousemove', resetTimer);
             window.removeEventListener('keydown', resetTimer);
             socket.disconnect();
+            socket.off('connect');
         };
-    }, []);
+    }, [socketId]);
 
     const handleReconnect = () => {
+        socket.connect(); // 重新連接socket
         setConnectionStatus('連接成功 ✔');
         setIsUserOffline(false);
     };
 
-    const handleBlur = () => {
+    /*const handleBlur = () => {
         setHoveredProduct(null);
         setInitialStock('');
-    };
+    };*/
     // 控制廠商篩選
     const handleVendorChange = (vendor) => {
 
@@ -253,7 +262,7 @@ const App = () => {
         setHoveredProduct({ ...product, isExpiryDisabled }); // 將 isExpiryDisabled 屬性加入 hoveredProduct 物件
         setInitialStock(initialStockData[product.商品編號] || '未設定'); // 查找對應的期初庫存
         setCurrentSpec(product.規格); // 設置當前商品的規格
-        const rect = e.currentTarget.getBoundingClientRect(); // 獲取當前商品行的邊界
+        //const rect = e.currentTarget.getBoundingClientRect(); // 獲取當前商品行的邊界
 
         setTooltipPosition({ top: e.clientY + 10, left: e.clientX + 10 }); // 更新工具提示位置
     };
@@ -281,7 +290,7 @@ const App = () => {
                                     <button className="header-button" onClick={() => setIsProductModalOpen(true)}>缺漏</button>
                                     <br />
                                     <button className="header-button" onClick={() => setIsExportModalOpen(true)}>匯出</button>
-                                        <button className="header-button" onClick={() => setIsFilterModalOpen(true)}>篩選</button>
+                                        <button id="butter-code" className="header-button" onClick={() => setIsFilterModalOpen(true)}>篩選</button>
                                     <button className="header-button" onClick={() => setUploadModalOpen(true)}>匯總報表</button>
                                 </td>
                             </tr>
@@ -289,13 +298,35 @@ const App = () => {
                                     <td colSpan="2" className="header-table.left" style={{ fontSize: '1em'}}>
                                     {connectionStatus} | 在線共<strong>{userCount}</strong>人
                                 </td>
-                            </tr>
-                            </thead>
+                                </tr>    </thead>
                         </table>
+                        
+                        <div id="product-code" >
+                            <hr />
+                            <div style={{ valign: 'top', textAlign: 'left', padding: '10', margin: '5' }}>
+                                        <label>　　　<strong>廠商</strong>：</label>
+                                        {allVendors.map(vendor => (
+                                            <label key={vendor} className="filter-item">
+                                                <input type="checkbox" checked={selectedVendors.includes(vendor)} onChange={() => handleVendorChange(vendor)} />
+                                                {vendor}
+                                            </label>
+                                        ))}<br />
+                                        <label>　　　<strong>溫層</strong>：</label>
+                                        {['冷藏', '冷凍', '常溫', '清潔', '備品'].map(layer => (
+                                            <label key={layer} className="filter-item">
+                                                <input type="checkbox" checked={selectedLayers.includes(layer)} onChange={() => handleLayerChange(layer)} />
+                                                {layer}
+                                            </label>
+                                        ))}</div>
+                                </div>
+                        
                     </div>
                 </div>
             </div>
-
+            <div id="product-code" >
+                <br />
+                <br />                <br />
+                </div>
             <br />
             <br />
             <br />
@@ -304,11 +335,11 @@ const App = () => {
                 <table  className="in-table">
                     <thead>
                         <tr>
-                            <th className="th">商品編號</th>
-                            <th className="th">商品名稱</th>
-                            <th className="th">數量</th>
-                            <th className="th">單位</th>
-                            <th className="th">到期日</th>
+                        <th id="product-code" className="in-th">商品編號</th>
+                            <th className="in-th">商品名稱</th>
+                            <th className="in-th">數量</th>
+                            <th id="product-code" className="in-th">單位</th>
+                            <th className="in-th">到期日</th>
                         </tr>
                     </thead>
                 
@@ -316,10 +347,11 @@ const App = () => {
                         {filteredProducts.map((product, index) => (
                             product.廠商 !== '#N/A' && (
                                 <tr key={product.商品編號}>
-                                    <td className="in-td">{product.商品編號}</td>
-                                    <td className="in-td" onMouseEnter={(e) => handleMouseEnter(product, e)} onMouseLeave={handleMouseLeave}>{product.商品名稱}</td>
-                                    <td className="in-td"><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyDown={(e) => handleKeyPress(e, index)} data-index={index} required /></td>
-                                    <td className="in-td">{product.單位}</td>
+                                    <td id="product-code" className="in-td">{product.商品編號}</td>
+                                    <td className="in-td" id="name" onMouseEnter={(e) => handleMouseEnter(product, e)} onMouseLeave={handleMouseLeave}>{product.商品名稱}</td>
+                                    <td id="butter-code" className="in-td" style={{ width: '80px' }}><label><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyDown={(e) => handleKeyPress(e, index)} data-index={index} required /> &nbsp;&nbsp;{product.單位}</label></td>
+                                    <td id="product-code" className="in-td"><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyDown={(e) => handleKeyPress(e, index)} data-index={index} required /></td>
+                                    <td id="product-code"  className="in-td">{product.單位}</td>
                                     <td className="in-td"><input className='date' type="date" value={product.到期日 ? new Date(product.到期日).toISOString().split('T')[0] : ""} onChange={(e) => handleExpiryDateChange(product.商品編號, e.target.value)} disabled={disabledVendors.includes(product.廠商)} /></td>
                                 </tr>
                             )))}
@@ -334,20 +366,20 @@ const App = () => {
                             <table className="header-table" style={{ margin: 5 }}>
                                 <tbody >
                                     <tr>
-                                        <th style={{ padding: '10', margin: '5' }}><h2>廠商</h2></th>
-                                        <th style={{ padding: '10', margin: '5' }}><h2>溫層</h2></th>
+                                        <th style={{ width: '80px', padding: '10', margin: '5' }}><h2>廠商</h2></th>
+                                        <th style={{ width: '80px', padding: '10', margin: '5' }}><h2>溫層</h2></th>
                                     </tr>
                                     <tr>
                                         <td style={{ valign: 'top', textAlign: 'left', padding: '10', margin: '5' }}>
-                                        {allVendors.map(vendor => (
-                                            <li><label key={vendor} className="filter-item">
+                                            {allVendors.map(vendor => (
+                                                <li className="li"><label key={vendor} className="filter-item">
                                                 <input type="checkbox" checked={selectedVendors.includes(vendor)} onChange={() => handleVendorChange(vendor)} />
                                                 {vendor}
                                             </label></li>
                                         ))}</td>
                                         <td style={{ valign: 'top', textAlign: 'left', padding: '10', margin: '5' }}>
                                             {['冷藏', '冷凍', '常溫', '清潔', '備品'].map(layer => (
-                                                <li><label key={layer} className="filter-item">
+                                                <li className="li"><label key={layer} className="filter-item">
                                                     <input type="checkbox" checked={selectedLayers.includes(layer)} onChange={() => handleLayerChange(layer)} />
                                                     {layer}
                                                 </label></li>
