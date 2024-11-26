@@ -11,7 +11,7 @@ const version = {
 };
 
 // 將版本號寫入 version.json
-const filePath = path.join(__dirname, 'build', 'version.json');
+const filePath = path.join(__dirname, public, 'version.json');
 fs.writeFileSync(filePath, JSON.stringify(version, null, 2));
 
 console.log('Generated version.json successfully.');
