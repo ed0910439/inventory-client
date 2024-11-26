@@ -165,8 +165,7 @@ const App = () => {
             setIsUserOffline(false);
         });
 
-        resetTimer(); // 初始重置計時器
-
+        
         // 在组件卸載時清理事件监听
         return () => {
             clearTimeout(timer);
@@ -277,7 +276,7 @@ const App = () => {
         setCurrentSpec(''); // 清除規格數據
     };
     return (
-        <div className="app">
+        <>
 
             {/* 固定的標題區域 */}
             <div className="inventory-header">
@@ -466,7 +465,7 @@ const App = () => {
                 <p style={{ margin: '0px' }}>© 2024 edc-pws.com. All rights reserved.</p>
             </footer>
 
-        </div>
+                </>
     );
 };
 
