@@ -45,7 +45,7 @@ const App = () => {
     const [socketId, setSocketId] = useState('');
     const filterRef = useRef(null);
     const allVendors = ['全台', '央廚', '王座', '王座-食', '忠欣', '開元', '裕賀', '美食家', '點線麵']; // 所有廠商
-    const disabledVendors = useState(['忠欣', '王座']); // 例如，禁用 '全台' 和 '央廚' 廠商的到期日輸入
+    const [disabledVendors, setDisabledVendors] = useState(['忠欣', '王座']);
 
 //    const [year, setYear] = useState('');
 //    const [month, setMonth] = useState('');
@@ -80,10 +80,12 @@ const App = () => {
             } catch (error) {
                 console.error("取得產品時出錯:", error.response ? error.response.data : error.message);
                 setConnectionStatus('失去連線 ❌');
-
-
+            } finally {
+                setLoading(false);
             }
         };
+
+
         const fetchVersion = async () => {
             try {
                 const response = await fetch('/version.json'); // 獲取最新版本號
