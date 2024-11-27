@@ -369,7 +369,9 @@ const App = () => {
                 <div className="modal-overlay" onClick={() => setIsFilterModalOpen(false)}>
                     <div className="modal-content" id="style-3" onClick={(e) => e.stopPropagation()}>
                         <div ref={filterRef} > {/*移除 style */}
-                            <table className="header-table" style={{ margin: 5 }}>
+                            <div className="fixed-header">
+                                <div className="header-container">
+                                    <table className="header-table" style={{ margin: 5 }}>
                                 <tbody >
                                     <tr>
                                         <th style={{ width: '80px', padding: '10', margin: '5' }}><h2>廠商</h2></th>
@@ -393,7 +395,8 @@ const App = () => {
                                     </tr>
                                 </tbody>
                             </table>
-                        </div>
+                                </div>
+                            </div>                        </div>
                     </div>
                 </div>
             )}

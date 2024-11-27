@@ -1,12 +1,11 @@
 {
   "name": "inventory-client",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "",
   "main": "App.js",
   "scripts": {
     "start": "react-scripts start",
-
-"build":"NODE_OPTIONS=--openssl-legacy-provider react-scripts build",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -21,7 +20,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-modal": "^3.16.1",
-    "react-scripts": "^4.0.3",
+    "react-scripts": "^5.0.1",
     "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
@@ -29,16 +28,8 @@
     "@babel/plugin-transform-private-property-in-object": "^7.25.9",
     "@babel/preset-env": "^7.25.7",
     "@babel/preset-react": "^7.25.7",
-    "wrangler": "^3.86.0",
-    "react-scripts": "4.0.3", 
-    "eslint": "^7.32.0", 
-    "eslint-plugin-react": "^7.28.0" 
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+    "babel-loader": "^9.2.1",
+    "wrangler": "^3.86.0"
   },
   "browserslist": {
     "production": [

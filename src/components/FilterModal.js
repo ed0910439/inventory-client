@@ -1,3 +1,6 @@
+//FilterModal.js
+
+
 import React, { useState, useRef, useEffect } from 'react';
 
 function FilterModal({ isOpen, onClose, products, onFilterChange }) {
