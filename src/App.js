@@ -8,10 +8,10 @@ import ExportModal from './components/ExportModal';
 import ProductModal from './components/ProductModal';
 import ArchiveModal from './components/ArchiveModal';
 import GuideModal from './components/GuideModal';
-import Modal from './components/Modal'; // 確保引入你的 Modal 組件
+import Modal from './components/Modal';
 import BouncyComponent from './BouncyComponent';
 import StartInventory from './components/StartInventory';
-
+import { setCookie, getCookie } from './utils/cookie'; // 匯入 cookie 函式
 
 const socket = io('https://inventory.edc-pws.com'); // 根据需要可能更改
 
@@ -44,7 +44,6 @@ const App = () => {
     const allVendors = ['全台', '央廚', '王座', '王座-食', '忠欣', '開元', '裕賀', '美食家', '點線麵']; // 所有廠商
     const [disabledVendors, setDisabledVendors] = useState(['忠欣', '王座']);
     const [isReconnectPromptVisible, setIsReconnectPromptVisible] = useState(false);
-
     const [year, setYear] = useState('');
     const [month, setMonth] = useState('');
     const [userCount, setUserCount] = useState(0); // 用於存儲線上人數
@@ -64,7 +63,9 @@ const App = () => {
         outTransfer: null,
         inTransfer: null,
     });
-
+    const cookieName = 'inventoryGuideShown'; // cookie 名稱
+    const cookieValue = 'true'; // cookie 值 (表示說明手冊已顯示過)
+    const localVersion = '1.0.6'; // 當前應用版本號
     useEffect(() => {
         const fetchProducts = async () => {
             setLoading(true); // 開始載入，設置狀態
@@ -75,21 +76,31 @@ const App = () => {
                 setConnectionStatus('連接成功 ✔');
                 setLoading(false); // 載入完成，更新狀態
                 setSocketId(socket.id); // 設置 socket id 到狀態中
+                setIsModalOpen(false);
 
             } catch (error) {
                 console.error("取得產品時出錯:", error.response ? error.response.data : error.message);
                 setConnectionStatus('失去連線 ❌');
-
-
+            
             }
         };
+
+        const guideShown = getCookie(cookieName);
+        if (!guideShown) {  // 如果 cookie 不存在
+            // 設定一個延遲，確保元件完全載入後再顯示說明手冊
+            setTimeout(() => {
+                setShowGuide(true); // 顯示說明手冊
+                setCookie(cookieName, cookieValue); // 設定 cookie，下次就不會再顯示
+            }, 1000); // 延遲 1 秒 (可根據需要調整)
+        }
+
 
         const fetchVersion = async () => {
             try {
                 const response = await fetch('/version.json'); // 獲取最新版本號
                 const data = await response.json();
                 const serverVersion = data.version;
-                const localVersion = '1.0.6'; // 當前應用版本號
+
 
                 if (serverVersion !== localVersion) {
                     setModalContent({
@@ -132,14 +143,14 @@ const App = () => {
                     product.商品編號 === updatedProduct.商品編號 ? updatedProduct : product
                 )
             );
-            if ({ socketId } !== socket.id) {            // 顯示新數據的位置提示
-                setNewMessage(`使用者: ${socket.id} 修改 ${updatedProduct.商品編號}-${updatedProduct.商品名稱} 數量為  ${updatedProduct.數量}`);
-                setShowToast(true);
+			if ({socketId} !== socket.id){            // 顯示新數據的位置提示
+            setNewMessage(`${updatedProduct.商品名稱} 數量變更為  ${updatedProduct.數量}`);
+            setShowToast(true);
 
-                setTimeout(() => {
-                    setShowToast(false);
-                }, 4000);
-            }
+            setTimeout(() => {
+                setShowToast(false);
+            }, 4000);
+			}
         });
 
 
@@ -155,6 +166,8 @@ const App = () => {
         // 註冊用戶活動事件來重置計時器
         window.addEventListener('mousemove', resetTimer);
         window.addEventListener('keydown', resetTimer);
+        resetTimer(); // 初始重置計時器
+
 
         resetTimer(); // 初始重置計時器
 
@@ -176,10 +189,16 @@ const App = () => {
         setIsUserOffline(false);
     };
 
+
+    
+    const handleReload = () => {
+        window.location.reload(); // 重新加載頁面
+
+    };
     const handleBlur = () => {
         setHoveredProduct(null);
         setInitialStock('');
-    };
+}
     // 控制廠商篩選
     const handleVendorChange = (vendor) => {
         setSelectedVendors((prev) =>
@@ -209,15 +228,15 @@ const App = () => {
             }
         }
     };
-    //下載最新數量
-    const updateQuantity = async (productCode, quantity) => {
+	//下載最新數量
+	const updateQuantity = async (productCode, quantity) => {
         try {
             await axios.put(`https://inventory.edc-pws.com/api/products/${productCode}/quantity`, { 數量: quantity });
         } catch (error) {
             console.error("更新產品時出錯:", error);
         }
     };
-    //下載最新校期
+	//下載最新校期
     const updateExpiryDate = async (productCode, expiryDate) => {
         try {
             await axios.put(`https://inventory.edc-pws.com/api/products/${productCode}/expiryDate`, { 到期日: expiryDate });
@@ -225,7 +244,7 @@ const App = () => {
             console.error("更新到期日時出錯:", error);
         }
     };
-    //上傳數量
+	//上傳數量
     const handleQuantityChange = (productCode, quantity) => {
         if (quantity < 0) { alert("數量不能為負。"); return; } const updatedProducts = products.map(product =>
             product.商品編號 === productCode ? { ...product, 數量: quantity } : product
@@ -234,7 +253,7 @@ const App = () => {
         setProducts(updatedProducts);
         updateQuantity(productCode, quantity);
     };
-    //上傳校期
+	//上傳校期
     const handleExpiryDateChange = (productCode, expiryDate) => {
         const updatedProducts = products.map(product =>
             product.商品編號 === productCode ? { ...product, 到期日: expiryDate } : product
@@ -243,6 +262,7 @@ const App = () => {
         setProducts(updatedProducts);
         updateExpiryDate(productCode, expiryDate);
     };
+
 
     const handleMouseEnter = (product, e) => {
         setHoveredProduct(product.商品編號); // 設置當前懸停的商品編號
@@ -302,7 +322,7 @@ const App = () => {
                                 </tr>
                                 <tr>
                                     <td colSpan="2" className="header-table.left" style={{ fontSize: '1em' }}>
-                                        {connectionStatus} | 在線共<strong>{userCount}</strong>人
+                                        {connectionStatus}&nbsp;&nbsp;|&nbsp;&nbsp;在線共&nbsp;&nbsp;<strong>{userCount}</strong>&nbsp;&nbsp;人&nbsp;&nbsp;|&nbsp;&nbsp;<strong>{localVersion}</strong>
                                     </td>
                                 </tr>    </thead>
                         </table>
@@ -415,7 +435,7 @@ const App = () => {
                 規格：{currentSpec} {/* 顯示規格 */}</div>
             )}
             {/* 短暫提示 */}
-            {showToast && (<div style={{ position: 'fixed', top: '20px', right: '20px', backgroundColor: '#4caf50', color: 'white', padding: '10px', borderRadius: '5px', boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)', zIndex: 1000, }}> {newMessage} </div>
+            {showToast && (<div style={{ position: 'fixed', bottom: '20px', left: '20px', backgroundColor: '#4caf50', color: 'white', padding: '10px', borderRadius: '5px', boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)', zIndex: 1000, }}> {newMessage} </div>
             )}
             {/* 使用ProductModal */}
             <ProductModal isOpen={isProductModalOpen} onClose={() => setIsProductModalOpen(false)} products={products} setProducts={setProducts} />
