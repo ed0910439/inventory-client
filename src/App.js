@@ -8,17 +8,16 @@ import ExportModal from './components/ExportModal';
 import ProductModal from './components/ProductModal';
 import ArchiveModal from './components/ArchiveModal';
 import GuideModal from './components/GuideModal';
-import Modal from './components/Modal'; // 確保引入你的 Modal 組件
+import Modal from './components/Modal';
 import BouncyComponent from './BouncyComponent';
 import StartInventory from './components/StartInventory';
-
+import { setCookie, getCookie } from './utils/cookie'; // 匯入 cookie 函式
 
 const socket = io('https://inventory.edc-pws.com'); // 根据需要可能更改
 
 // 样式定義
 const App = () => {
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-//    const [latestVersion, setLatestVersion] = useState(null);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true); // 載入狀態
     const [initialStockData, setInitialStockData] = useState({}); // 存儲期初庫存
@@ -39,33 +38,18 @@ const App = () => {
     const [hoveredProduct, setHoveredProduct] = useState(null); // 懸停的商品編號
     const [initialStock, setInitialStock] = useState(''); // 用於顯示期初庫存量
     const [currentSpec, setCurrentSpec] = useState(''); // 用於顯示規格
-//    const [showOfflineWarning, setShowOfflineWarning] = useState(false);
-//    const [isOfflineMode, setIsOfflineMode] = useState(false);
     const inputRefs = useRef([]); // 用於儲存每個輸入框的引用
     const [socketId, setSocketId] = useState('');
     const filterRef = useRef(null);
     const allVendors = ['全台', '央廚', '王座', '王座-食', '忠欣', '開元', '裕賀', '美食家', '點線麵']; // 所有廠商
     const [disabledVendors, setDisabledVendors] = useState(['忠欣', '王座']);
-
-//    const [year, setYear] = useState('');
-//    const [month, setMonth] = useState('');
     const [userCount, setUserCount] = useState(0); // 用於存儲線上人數
-//    const [initialUnit, setInitialUnit] = useState(''); // 用於存儲期初庫存量
     const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 }); // 記錄工具提示的位置
-//    const [password, setPassword] = useState('');
-//   const [modalVisible, setModalVisible] = useState(false);
     const [isStartInventoryOpen, setIsStartInventoryOpen] = useState(false);
- //   const [isFilterVisible, setIsFilterVisible] = useState(false);
     const setUploadModalOpen = useState(false);
-/*    const [files, setFiles] = useState({
-        stock: null,
-        currentMonth: null,
-        initialStock: null,
-        finalStock: null,
-        outTransfer: null,
-        inTransfer: null,
-    });*/
-    
+    const cookieName = 'inventoryGuideShown'; // cookie 名稱
+    const cookieValue = 'true'; // cookie 值 (表示說明手冊已顯示過)
+
     useEffect(() => {
         const fetchProducts = async () => {
             setLoading(true); // 開始載入，設置狀態
@@ -80,11 +64,18 @@ const App = () => {
             } catch (error) {
                 console.error("取得產品時出錯:", error.response ? error.response.data : error.message);
                 setConnectionStatus('失去連線 ❌');
-            } finally {
-                setLoading(false);
+            
             }
         };
 
+        const guideShown = getCookie(cookieName);
+        if (!guideShown) {  // 如果 cookie 不存在
+            // 設定一個延遲，確保元件完全載入後再顯示說明手冊
+            setTimeout(() => {
+                setShowGuide(true); // 顯示說明手冊
+                setCookie(cookieName, cookieValue); // 設定 cookie，下次就不會再顯示
+            }, 1000); // 延遲 1 秒 (可根據需要調整)
+        }
 
         const fetchVersion = async () => {
             try {
@@ -122,8 +113,6 @@ const App = () => {
         fetchProducts();
         fetchVersion();
 
-
-
         // 監聽連接的用戶數更新
         socket.on('updateUserCount', (count) => {
             setUserCount(count);
@@ -135,14 +124,14 @@ const App = () => {
                     product.商品編號 === updatedProduct.商品編號 ? updatedProduct : product
                 )
             );
-            if ({ socketId } !== socket.id) {            // 顯示新數據的位置提示
-                setNewMessage(`使用者: ${socket.id} 修改 ${updatedProduct.商品編號}-${updatedProduct.商品名稱} 數量為  ${updatedProduct.數量}`);
-                setShowToast(true);
+			if ({socketId} !== socket.id){            // 顯示新數據的位置提示
+            setNewMessage(`使用者: ${socket.id} 修改 ${updatedProduct.商品編號}-${updatedProduct.商品名稱} 數量為  ${updatedProduct.數量}`);
+            setShowToast(true);
 
-                setTimeout(() => {
-                    setShowToast(false);
-                }, 4000);
-            }
+            setTimeout(() => {
+                setShowToast(false);
+            }, 4000);
+			}
         });
 
 
@@ -154,12 +143,14 @@ const App = () => {
                 setConnectionStatus('失去連線 ❌'); 
                 setIsReconnectPromptVisible(true); // 顯示重新上線的提示框
                 setIsUserOffline(true);
-            }, idleTimeout); // 使用閒置時間
+            }, idleTimeout);
         };
 
         // 註冊用戶活動事件來重置計時器
         window.addEventListener('mousemove', resetTimer);
         window.addEventListener('keydown', resetTimer);
+        resetTimer(); // 初始重置計時器
+
 
         socket.on('connect', () => {
             resetTimer();
@@ -193,10 +184,10 @@ const App = () => {
     const handleReload = () => {
         window.location.reload(); // 重新加載頁面
     };
-    /*const handleBlur = () => {
+    const handleBlur = () => {
         setHoveredProduct(null);
         setInitialStock('');
-    };*/
+}
     // 控制廠商篩選
     const handleVendorChange = (vendor) => {
 
@@ -227,15 +218,15 @@ const App = () => {
             }
         }
     };
-    //下載最新數量
-    const updateQuantity = async (productCode, quantity) => {
+	//下載最新數量
+	const updateQuantity = async (productCode, quantity) => {
         try {
             await axios.put(`https://inventory.edc-pws.com/api/products/${productCode}/quantity`, { 數量: quantity });
         } catch (error) {
             console.error("更新產品時出錯:", error);
         }
     };
-    //下載最新校期
+	//下載最新校期
     const updateExpiryDate = async (productCode, expiryDate) => {
         try {
             await axios.put(`https://inventory.edc-pws.com/api/products/${productCode}/expiryDate`, { 到期日: expiryDate });
@@ -243,7 +234,7 @@ const App = () => {
             console.error("更新到期日時出錯:", error);
         }
     };
-    //上傳數量
+	//上傳數量
     const handleQuantityChange = (productCode, quantity) => {
         if (quantity < 0) { alert("數量不能為負。"); return; } const updatedProducts = products.map(product =>
             product.商品編號 === productCode ? { ...product, 數量: quantity } : product
@@ -252,7 +243,7 @@ const App = () => {
         setProducts(updatedProducts);
         updateQuantity(productCode, quantity);
     };
-    //上傳校期
+	//上傳校期
     const handleExpiryDateChange = (productCode, expiryDate) => {
         const updatedProducts = products.map(product =>
             product.商品編號 === productCode ? { ...product, 到期日: expiryDate } : product
@@ -261,6 +252,7 @@ const App = () => {
         setProducts(updatedProducts);
         updateExpiryDate(productCode, expiryDate);
     };
+
 
     const handleMouseEnter = (product, e) => {
         const isExpiryDisabled = disabledVendors.includes(product.廠商);
