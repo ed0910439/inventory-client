@@ -1,4 +1,3 @@
-//App.js
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { saveAs } from 'file-saver';
@@ -11,77 +10,60 @@ import GuideModal from './components/GuideModal';
 import Modal from './components/Modal';
 import BouncyComponent from './BouncyComponent';
 import StartInventory from './components/StartInventory';
-import { setCookie, getCookie } from './utils/cookie'; // 匯入 cookie 函式
+import { setCookie, getCookie } from './utils/cookie';
 
-const socket = io('https://inventory.edc-pws.com'); // 根据需要可能更改
+const socket = io('https://inventory.edc-pws.com'); //  連線到 Socket.IO 伺服器
 
-// 样式定义
 const App = () => {
+    // 狀態變數
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-    const [latestVersion, setLatestVersion] = useState(null);
     const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true); // 載入狀態
-    const [initialStockData, setInitialStockData] = useState({}); // 存儲期初庫存
-    const [selectedVendors, setSelectedVendors] = useState([]); // 儲存選中的廠商
-    const [selectedLayers, setSelectedLayers] = useState([]); // 儲存選中的溫層
-    const [newMessage, setNewMessage] = useState(''); // 儲存新數據提示內容
-    const [showToast, setShowToast] = useState(false); // 控制提示顯示
-    const [connectionStatus, setConnectionStatus] = useState('Disconnected');
-    const [showGuide, setShowGuide] = useState(false); // 控制顯示說明手冊
-    const [isUserOffline, setIsUserOffline] = useState(false); // 控制顯示離線提示框
-    const idleTimeout = 600000; // 閒置10分鐘 （600,000毫秒）
+    const [loading, setLoading] = useState(true);
+    const [initialStockData, setInitialStockData] = useState({});
+    const [selectedVendors, setSelectedVendors] = useState([]);
+    const [selectedLayers, setSelectedLayers] = useState([]);
+    const [newMessage, setNewMessage] = useState('');
+    const [showToast, setShowToast] = useState(false);
+    const [connectionStatus, setConnectionStatus] = useState('連線中...'); // 初始狀態改為連線中
+    const [showGuide, setShowGuide] = useState(false);
+    const [isOffline, setIsOffline] = useState(false); // 使用更簡潔的變數名稱
+    const [errorModal, setErrorModal] = useState(null); // 顯示錯誤訊息的 Modal
     const [modalContent, setModalContent] = useState({});
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-    const [hoveredProduct, setHoveredProduct] = useState(null); // 懸停的商品編號
-    const [initialStock, setInitialStock] = useState(''); // 用於顯示期初庫存量
-    const [currentSpec, setCurrentSpec] = useState(''); // 用於顯示規格
-    const [showOfflineWarning, setShowOfflineWarning] = useState(false);
-    const [isOfflineMode, setIsOfflineMode] = useState(false);
-    const inputRefs = useRef([]); // 用於儲存每個輸入框的引用
-    const [socketId, setSocketId] = useState('');
-    const allVendors = ['全台', '央廚', '王座', '王座-食', '忠欣', '開元', '裕賀', '美食家', '點線麵']; // 所有廠商
+    const [hoveredProduct, setHoveredProduct] = useState(null);
+    const [initialStock, setInitialStock] = useState('');
+    const [currentSpec, setCurrentSpec] = useState('');
+    const [currentunit, setCurrentunit] = useState('');
+    const inputRefs = useRef([]);
+    const allVendors = ['全台', '央廚', '王座', '王座-食', '忠欣', '開元', '裕賀', '美食家', '點線麵'];
     const [disabledVendors, setDisabledVendors] = useState(['忠欣', '王座']);
-    const [isReconnectPromptVisible, setIsReconnectPromptVisible] = useState(false);
-    const [year, setYear] = useState('');
-    const [month, setMonth] = useState('');
-    const [userCount, setUserCount] = useState(0); // 用於存儲線上人數
-    const [initialUnit, setInitialUnit] = useState(''); // 用於存儲期初庫存量
-    const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 }); // 記錄工具提示的位置
-    const [password, setPassword] = useState('');
-    const [modalVisible, setModalVisible] = useState(false);
-    const [isStartInventoryOpen, setIsStartInventoryOpen] = useState(false);
-    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-    const filterRef = useRef(null);
+    const [userCount, setUserCount] = useState(0);
+    const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
     const [isUploadModalOpen, setUploadModalOpen] = useState(false);
-    const [files, setFiles] = useState({
-        stock: null,
-        currentMonth: null,
-        initialStock: null,
-        finalStock: null,
-        outTransfer: null,
-        inTransfer: null,
-    });
-    const cookieName = 'inventoryGuideShown'; // cookie 名稱
-    const cookieValue = 'true'; // cookie 值 (表示說明手冊已顯示過)
-    const localVersion = '1.0.6'; // 當前應用版本號
+    const [files, setFiles] = useState({ /* ... */ });
+    const cookieName = 'inventoryGuideShown';
+    const localVersion = '1.0.6';
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+    const [isStartInventoryOpen, setIsStartInventoryOpen] = useState(false);
+    const [isReconnectPromptVisible, setIsReconnectPromptVisible] = useState(false);
+
     useEffect(() => {
         const fetchProducts = async () => {
-            setLoading(true); // 開始載入，設置狀態
-
+            setLoading(true);
             try {
                 const response = await axios.get('https://inventory.edc-pws.com/api/products');
                 setProducts(response.data);
                 setConnectionStatus('連接成功 ✔');
-                setLoading(false); // 載入完成，更新狀態
-                setSocketId(socket.id); // 設置 socket id 到狀態中
-                setIsModalOpen(false);
-
+                setLoading(false);
+                setIsOffline(false); // 網路連線成功，更新離線狀態
             } catch (error) {
-                console.error("取得產品時出錯:", error.response ? error.response.data : error.message);
+                handleError(error, '取得產品失敗'); // 使用新的錯誤處理函式
                 setConnectionStatus('失去連線 ❌');
-            
+                setIsOffline(true); // 網路連線失敗，更新離線狀態
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -120,73 +102,69 @@ const App = () => {
                 const response = await axios.get('https://inventory.edc-pws.com/archive/originaldata');
                 const initialStockMap = {};
                 response.data.forEach(item => {
-                    initialStockMap[item.商品編號] = item.數量; // 儲存成物件以便查詢
+                    initialStockMap[item.商品編號] = {
+                        數量: item.數量,
+                        規格: item.規格,
+                        單位: item.單位
+                    };
                 });
                 setInitialStockData(initialStockMap);
             } catch (error) {
-                console.error("獲取期初庫存數據時出錯:", error);
+                handleError(error, "獲取期初庫存數據失敗");
             }
+        
         };
         fetchInitialStockData();
         fetchProducts();
         fetchVersion();
 
 
-        // 監聽連接的用戶數更新
-        socket.on('updateUserCount', (count) => {
-            setUserCount(count);
-        });
-
+        // Socket.IO 事件監聽
+        socket.on('updateUserCount', setUserCount);
         socket.on('productUpdated', (updatedProduct) => {
-            setProducts(prevProducts =>
-                prevProducts.map(product =>
-                    product.商品編號 === updatedProduct.商品編號 ? updatedProduct : product
-                )
-            );
-			if ({socketId} !== socket.id){            // 顯示新數據的位置提示
-            setNewMessage(`${updatedProduct.商品名稱} 數量變更為  ${updatedProduct.數量}`);
+            setProducts(prevProducts => prevProducts.map(product =>
+                product.商品編號 === updatedProduct.商品編號 ? updatedProduct : product
+            ));
+            setNewMessage(`${updatedProduct.商品名稱} 數量變更為 ${updatedProduct.數量}`);
             setShowToast(true);
-
-            setTimeout(() => {
-                setShowToast(false);
-            }, 4000);
-			}
+            setTimeout(() => setShowToast(false), 4000);
         });
 
-
-        let timer;
-        const resetTimer = () => {
-            if (timer) clearTimeout(timer);
-            timer = setTimeout(() => {
-                setConnectionStatus('失去連線 ❌');
-                setIsUserOffline(true);
-            }, idleTimeout);
+        // 網路連線狀態監聽 (需要根據瀏覽器環境調整)
+        const handleOnline = () => {
+            setConnectionStatus('連線成功 ✔');
+            setIsOffline(false);
         };
+        const handleOffline = () => {
+            setConnectionStatus('失去連線 ❌');
+            setIsOffline(true);
+        };
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
 
-        // 註冊用戶活動事件來重置計時器
-        window.addEventListener('mousemove', resetTimer);
-        window.addEventListener('keydown', resetTimer);
-        resetTimer(); // 初始重置計時器
-
-
-        resetTimer(); // 初始重置計時器
-
-        // 在组件卸载時清理事件监听
+        // 清除函式
         return () => {
-            clearTimeout(timer);
-            socket.off('連接成功');
-            socket.off('失去連線');
+            socket.off('updateUserCount', setUserCount);
             socket.off('productUpdated');
-            socket.off('updateUserCount');
-            window.removeEventListener('mousemove', resetTimer);
-            window.removeEventListener('keydown', resetTimer);
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
             socket.disconnect();
         };
     }, []);
 
+
+    // 錯誤處理函式
+    const handleError = (error, defaultMessage) => {
+        const errorMessage = error.response ? error.response.data.message || error.response.data : error.message || defaultMessage;
+        setErrorModal({ title: '錯誤訊息', message: errorMessage });
+        setIsModalOpen(true);
+    };
+
     const handleReconnect = () => {
         setConnectionStatus('連接成功 ✔');
         setIsUserOffline(false);
+        setIsReconnectPromptVisible(false);
+
     };
 
 
@@ -246,12 +224,17 @@ const App = () => {
     };
 	//上傳數量
     const handleQuantityChange = (productCode, quantity) => {
-        if (quantity < 0) { alert("數量不能為負。"); return; } const updatedProducts = products.map(product =>
-            product.商品編號 === productCode ? { ...product, 數量: quantity } : product
+        // 輸入驗證: 確保數量為非負數
+        const numQuantity = Number(quantity);
+        if (isNaN(numQuantity) || numQuantity < 0) {
+            alert('數量必須為非負數');
+            return;
+        }
+        const updatedProducts = products.map(product =>
+            product.商品編號 === productCode ? { ...product, 數量: numQuantity } : product
         );
-
         setProducts(updatedProducts);
-        updateQuantity(productCode, quantity);
+        updateQuantity(productCode, numQuantity);
     };
 	//上傳校期
     const handleExpiryDateChange = (productCode, expiryDate) => {
@@ -265,9 +248,11 @@ const App = () => {
 
 
     const handleMouseEnter = (product, e) => {
-        setHoveredProduct(product.商品編號); // 設置當前懸停的商品編號
-        setInitialStock(initialStockData[product.商品編號] || '未設定'); // 查找對應的期初庫存
-        setCurrentSpec(product.規格); // 設置當前商品的規格
+        setHoveredProduct(product.商品編號);
+        const initialStockItem = initialStockData[product.商品編號];
+        setInitialStock(initialStockItem ? initialStockItem.數量 : 0 );
+        setCurrentSpec(initialStockItem ? initialStockItem.規格 : '未設定');
+        setCurrentunit(initialStockItem ? initialStockItem.單位 : '');
         const rect = e.currentTarget.getBoundingClientRect(); // 獲取當前商品行的邊界
 
         setTooltipPosition({ top: e.clientY + 10, left: e.clientX + 10 }); // 更新工具提示位置
@@ -277,6 +262,7 @@ const App = () => {
         setHoveredProduct(null); // 清除懸停商品
         setInitialStock(''); // 清除期初庫存數據
         setCurrentSpec(''); // 清除規格數據
+        setCurrentunit(''); // 清除單位數據
     };
 
 
@@ -297,7 +283,10 @@ const App = () => {
         await processFiles(files);
         setUploadModalOpen(false); // 关闭对话框
     };
-
+    // 顯示錯誤訊息的 Modal
+    const ErrorModal = ({ title, message }) => (
+        <Modal isOpen={!!errorModal} title={title} message={message} onClose={() => setErrorModal(null)} type="error" />
+    )
     return (
         <>
             {/* 固定的標題區域 */}
@@ -431,7 +420,7 @@ const App = () => {
             )}
             {/* 顯示工具提示 */}
             {hoveredProduct && (<div style={{ textAlign: 'left', fontSize: '12px', position: 'fixed', backgroundColor: 'white', border: '1px solid #ccc', padding: '5px', borderRadius: '5px', zIndex: 1000, top: tooltipPosition.top, left: tooltipPosition.left, }}>
-                期初庫存量：{initialStock}<br />
+                期初庫存量：{initialStock}{currentunit}<br />
                 規格：{currentSpec} {/* 顯示規格 */}</div>
             )}
             {/* 短暫提示 */}
@@ -466,21 +455,26 @@ const App = () => {
 
 
 
-            {/* 顯示離線提示框 */}
-            {isUserOffline && (
+            <ErrorModal title={errorModal?.title} message={errorModal?.message} /> {/* 顯示錯誤訊息 Modal */}
+
+
+            {/* 顯示離線提示 */}
+            {isOffline && (
                 <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, }}>
                     <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
-                        <h2>您已離線</h2>
-                        <p>請檢查網絡連線是否正常，或聯繫管理員協助處理。</p>
-                        <button style={{ fontFamily: 'Chocolate Classical Sans' }} onClick={handleReconnect}>重新上線</button>
+                     <h2>您已離線</h2>
+                    <p>請檢查網路連線是否正常。</p>
+                    <button onClick={() => window.location.reload()}>重新整理</button>
                     </div>
                 </div>
+
             )}
+
             {/* 閒置提示框，顯示重新上線按鈕 */}
             {isReconnectPromptVisible && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <h2>閒置中斷線</h2>
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, }}>
+                    <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
+                         <h2>閒置中斷線</h2>
                         <p>您已閒置超過10分鐘，請重新連接。</p>
                         <button onClick={handleReconnect}>重新上線</button>
                     </div>
