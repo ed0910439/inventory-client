@@ -16,6 +16,7 @@ const socket = io('https://inventory.edc-pws.com'); //  連線到 Socket.IO 伺�
 
 const App = () => {
     // 狀態變數
+    const [showFunctionButtons, setShowFunctionButtons] = useState(false);
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -44,10 +45,13 @@ const App = () => {
     const [isUploadModalOpen, setUploadModalOpen] = useState(false);
     const [files, setFiles] = useState({ /* ... */ });
     const cookieName = 'inventoryGuideShown';
-    const localVersion = '1.0.6';
+    const localVersion = '1.0.7';
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [isStartInventoryOpen, setIsStartInventoryOpen] = useState(false);
     const [isReconnectPromptVisible, setIsReconnectPromptVisible] = useState(false);
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+    const [actionToConfirm, setActionToConfirm] = useState(null); // 'clearQuantities' 或 'clearExpiryDates'
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -171,7 +175,7 @@ const App = () => {
     
     const handleReload = () => {
         window.location.reload(); // 重新加載頁面
-
+        setIsModalOpen(false)
     };
     const handleBlur = () => {
         setHoveredProduct(null);
@@ -265,6 +269,37 @@ const App = () => {
         setCurrentunit(''); // 清除單位數據
     };
 
+    const toggleFunctionButtons = () => {
+        setShowFunctionButtons(prev => !prev); // 切換當前狀態
+    };
+
+    //一鍵刪除貨量
+    const handleClearQuantities = () => {
+        const updatedProducts = products.map(product => ({
+            ...product,
+            數量: 0 // 將所有數量設置為 0
+        }));
+        setProducts(updatedProducts);
+
+        // 發送請求到後端更新數據庫
+         products.forEach(product => {
+             handleQuantityChange(product.商品編號, 0); // 假設 updateQuantity 函數被定義為更新數量
+         });
+    };
+    //一鍵刪除日期
+    const handleClearExpiryDates = () => {
+        const updatedProducts = products.map(product => ({
+            ...product,
+            到期日: '' // 將所有到期日設置為 null
+        }));
+        setProducts(updatedProducts);
+
+        // 發送請求到後端更新數據庫：
+        products.forEach(product => {
+            handleExpiryDateChange(product.商品編號, ''); // 假設 updateExpiryDate 函數被定義為更新到期日
+        });
+    };
+
 
 
 
@@ -301,12 +336,22 @@ const App = () => {
                                     </td>
                                     <td rowSpan="2" className="header-table.right">
                                         <button className="header-button" onClick={() => setShowGuide(true)}>說明</button>
-                                        <button className="header-button" onClick={() => setIsArchiveModalOpen(true)}>歸檔</button>
-                                        <button className="header-button" onClick={() => setIsProductModalOpen(true)}>缺漏</button>
-                                        <br />
-                                        <button className="header-button" onClick={() => setIsExportModalOpen(true)}>匯出</button>
+                                        <button className="header-button" onClick={() => setIsProductModalOpen(true)}>新增</button>
                                         <button id="butter-code" className="header-button" onClick={() => setIsFilterModalOpen(true)}>篩選</button>
-                                        <button className="header-button" onClick={() => setUploadModalOpen(true)}>匯總報表</button>
+                                        <button className="header-button" onClick={() => setIsArchiveModalOpen(true)}>歸檔</button>
+                                        <button className="header-button" onClick={() => setIsExportModalOpen(true)}>匯出</button>
+                                        <br />
+                                        <button onClick={toggleFunctionButtons}>更多功能</button>
+
+                                        {showFunctionButtons && (
+                                            <div>
+
+                                                <button onClick={handleClearQuantities}>數量清除</button>
+                                                <button onClick={handleClearExpiryDates}>到期日清除</button>
+                                            </div>
+                                        )}
+                                        
+                                        
                                     </td>
                                 </tr>
                                 <tr>
@@ -367,7 +412,7 @@ const App = () => {
                                 <td id="butter-code" className="in-td" style={{ width: '80px' }}><label><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyDown={(e) => handleKeyPress(e, index)} data-index={index} required /> &nbsp;&nbsp;{product.單位}</label></td>
                                 <td id="product-code" className="in-td"><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyDown={(e) => handleKeyPress(e, index)} data-index={index} required /></td>
                                 <td id="product-code" className="in-td">{product.單位}</td>
-                                <td className="in-td"><input className='date' type="date" value={product.到期日 ? new Date(product.到期日).toISOString().split('T')[0] : ""} onChange={(e) => handleExpiryDateChange(product.商品編號, e.target.value)} disabled={disabledVendors.includes(product.廠商)} /></td>
+                                <td className="in-td"><input className='date' type="date" value={product.到期日 ? new Date(product.到期日).toISOString().split('T')[0] : ""} onChange={(e) => handleExpiryDateChange(product.商品編號, e.target.value)} /*disabled={disabledVendors.includes(product.廠商)} */ /></td>
                             </tr>
                         )))}
                 </tbody>
