@@ -5,6 +5,7 @@ module.exports = {
   // 入口文件
   entry: './src/index.js',
 
+
   // 输出设置
   output: {
     path: path.resolve(__dirname, 'build'), // 输出目录
@@ -69,7 +70,20 @@ module.exports = {
   },
 
   // 模块解析
-  resolve: {
+    resolve: {
+        fallback: {
+            "path": require.resolve("path-browserify"),
+            "fs": false,           // Set to false if your app doesn't use fs
+            "http": require.resolve("stream-http"),
+            "https": require.resolve("https-browserify"),
+            "stream": require.resolve("stream-browserify"),
+            "zlib": require.resolve("browserify-zlib"),
+            "os": require.resolve("os-browserify/browser"),
+            "assert": require.resolve("assert/"),
+            "net": false,          // Set to false if your app doesn't use net
+            "tls": false,          // Set to false if your app doesn't use tls
+            "child_process": false // Set to false if your app doesn't use child_process
+        },
     extensions: ['.js', '.jsx'], // 自动解析这两种扩展名
   },
 };

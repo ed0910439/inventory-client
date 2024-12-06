@@ -4,55 +4,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>進銷存系統</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js" integrity="sha384-1PH7loFe9aVDAyHgsXQly6QE1ATOEHvmQt4vAuu6ppdeL5lm9vqAczXV0R6sbJkJ"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 </head>
 <body>
     <h1>進銷存系統</h1>
 
     <!-- 上傳所有檔案 -->
-    <p>進銷存：<input type="file" id="inventory-input" accept=".xlsx, .xls" /></p>
-    <p>期初：<input type="file" id="stock-input" accept=".xlsx, .xls" /></p>
-    <p>期末：<input type="file" id="final-stock-input" accept=".xlsx, .xls" /></p>
-    <p>進貨：<input type="file" id="detail-input" accept=".xlsx, .xls" /></p>
-    <p>調入<input type="file" id="loadIn-input" accept=".xlsx, .xls" /></p>
-    <p>調出：<input type="file" id="loadOut-input" accept=".xlsx, .xls" /></p>
-
+    <p>進&nbsp;銷&nbsp;存：<input type="file" id="inventory-input" accept=".xlsx, .xls" /></p>
+    <p>期初盤點：<input type="file" id="stock-input" accept=".xlsx, .xls" /></p>
+    <p>期末盤點：<input type="file" id="final-stock-input" accept=".xlsx, .xls" /></p>
+    <p>進貨明細：<input type="file" id="detail-input" accept=".xlsx, .xls" /></p>
+    <p>調入明細：<input type="file" id="loadIn-input" accept=".xlsx, .xls" /></p>
+    <p>調出明細：<input type="file" id="loadOut-input" accept=".xlsx, .xls" /></p>
+    <br />
+    <label>本月營業額：<input type="number" id="sales-input" required /></label>
+<br />
     <!-- 執行資料匯入 -->
     <button id="import-btn">執行資料匯入</button>
-    
+
     <!-- 下載匯出的報告 -->
-    <button id="download-btn">下載更新的進銷存</button>
+    <button id="download-btn">下載進銷存</button>
 
     <div id="output"></div>
+
 
     <script>
         let inventoryData = {
             total: [], // 存放進銷存總表數據
         };
 
+        // 重置庫存數據
+        const resetInventoryData = () => {
+            inventoryData = {
+                total: [],
+
+            };
+        };
+
+        // 取得並更新本月營業額的變量
+        let sales = 0;
+
+        // 取得並更新本月營業額的變量
+        document.getElementById('sales-input').addEventListener('input', function (e) {
+            sales = parseFloat(e.target.value) || 0; // 將輸入的數值轉換為數字
+        });
+
         // 加載進銷存數據
         const loadInventoryData = (data) => {
-            const rows = data.slice(2); // 跳過前兩行標題數
+            // 提取 A1 单元格的内容
+            const myFileName = data['A1'] ? data['A1'].v : '';
+            console.log(myFileName);
+            const rows = data.slice(2); // 跳過前兩行標題數據
+            inventoryData.total = []; // 清空舊資料
+
             rows.forEach(row => {
                 inventoryData.total.push({
                     品號: row[0], // 品號在第0欄
-                    品名: row[2], // 品名
-                    保存期限: row[4], // 保存期限
-                    本月進貨: Number(row[7]) || 0, // 第7欄
-                    期初盤點: Number(row[9]) || 0, // 期初盤點
-                    期末盤點: Number(row[10]) || 0, // 期末盤點
-                    調出: Number(row[11]) || 0, // 調出
-                    調入: Number(row[12]) || 0  // 調入
+                    廠商: row[1],
+                    品名: row[2],
+                    規格: row[3],
+                    盤點單位: row[4],
+                    保存期限: row[6],
+                    本月報價: row[5],
+                    本月進貨: row[7],
+                    進貨單位: row[8],
+                    期初盤點: Number(row[9]) || 0,
+                    期末盤點: Number(row[10]) || 0,
+                    調出: Number(row[11]) || 0,
+                    調入: Number(row[12]) || 0,
+                    本月使用量: Number(row[13]) || 0,
+                    本月食材成本: Number(row[14]) || 0,
+                    週用量: Number(row[16]) || 0,
                 });
             });
+            console.log('進銷存數據:', inventoryData.total);
         };
+
+
         // 加載期初盤點數據
         const loadInitialStock = (data) => {
             const rows = data.slice(1); // 跳過標題行
             rows.forEach(row => {
                 const itemNumber = row[0]; // 品號
-                const quantity = row[3]; // 數量
-                
+                const quantity = row[2]; // 數量
+
                 const inventoryItem = inventoryData.total.find(item => item.品號 === itemNumber);
                 if (inventoryItem) {
                     inventoryItem.期初盤點 = Number(quantity); // 更新期初盤點
@@ -66,7 +101,7 @@
             rows.forEach(row => {
                 const itemNumber = row[0]; // 品號
                 const quantity = row[2]; // 數量
-                const date = row[4]; // 保存期限（可使用或忽略）
+                const date = row[4]; // 保存期限
 
                 const inventoryItem = inventoryData.total.find(item => item.品號 === itemNumber);
                 if (inventoryItem) {
@@ -75,52 +110,50 @@
                 }
             });
         };
-		
+
         // 加載當月進貨明細數據
         const loadCurrentMonthDetail = (data) => {
             const rows = data.slice(1); // 跳過標題行
             rows.forEach(row => {
-                const itemNumber = row[2]; // 第2欄 品號
-                const receivedQuantity = row[9]; // 第9欄 本月進貨
+                const itemNumber = row[2]; // 品號在第2欄
+                const monthQuantity = row[9]; // 驗收數量在第9欄
 
                 let inventoryItem = inventoryData.total.find(item => item.品號 === itemNumber);
                 if (!inventoryItem) {
                     inventoryItem = { 品號: itemNumber, 本月進貨: 0 };
                     inventoryData.total.push(inventoryItem); // 新增品號
                 }
-                inventoryItem.本月進貨 = Number(receivedQuantity); // 更新驗收數量
+                inventoryItem.本月進貨 = Number(monthQuantity); // 更新本月進貨
             });
         };
 
-		// 加載調入數據
-		const loadIncomingData = (data) => {
-			const rows = data.slice(1); // 跳過標題行
-			rows.forEach(row => {
-				const itemNumber = row[10]; // 品號
-				const receivedQuantity = row[14]; // 驗收數量
-				const inventoryItem = inventoryData.total.find(item => item.品號 === itemNumber);
+        // 加載調入數據
+        const loadIncomingData = (data) => {
+            const rows = data.slice(1); // 跳過標題行
+            rows.forEach(row => {
+                const itemNumber = row[10]; // 品號在第10欄
+                const receivedQuantity = row[14]; // 驗收數量在第14欄
+                const inventoryItem = inventoryData.total.find(item => item.品號 === itemNumber);
 
-				if (inventoryItem) {
-					inventoryItem.調入 += Number(receivedQuantity); // 匯總驗收數量
-				} 
-			});
-		};
+                if (inventoryItem) {
+                    inventoryItem.調入 += Number(receivedQuantity); // 匯總調入數量
+                }
+            });
+        };
 
-		// 加載調出數據
-		const loadOutgoingData = (data) => {
-			const rows = data.slice(1); // 跳過標題行
-			rows.forEach(row => {
-				const itemNumber = row[9]; // 品號
-				const issuedQuantity = row[13]; // 驗收數量
-				
-				const inventoryItem = inventoryData.total.find(item => item.品號 === itemNumber);
+        // 加載調出數據
+        const loadOutgoingData = (data) => {
+            const rows = data.slice(1); // 跳過標題行
+            rows.forEach(row => {
+                const itemNumber = row[9]; // 品號在第9欄
+                const issuedQuantity = row[13]; // 驗收數量在第13欄
 
-				if (inventoryItem) {
-					inventoryItem.調出 += Number(issuedQuantity); // 匯總驗收數量
-				}
-			});
-		};
-
+                const inventoryItem = inventoryData.total.find(item => item.品號 === itemNumber);
+                if (inventoryItem) {
+                    inventoryItem.調出 += Number(issuedQuantity); // 匯總調出數量
+                }
+            });
+        };
 
         // 通用上傳函數
         const uploadFile = (file, callback) => {
@@ -149,8 +182,11 @@
         // 執行資料匯入的按鈕事件
         document.getElementById('import-btn').addEventListener('click', async () => {
             try {
-			// 重置庫存數據
+                resetInventoryData(); // 每次匯入資料前重置數據
 
+
+
+                // 獲取上傳的文件
                 const inventoryFile = document.getElementById('inventory-input').files[0];
                 const initialStockFile = document.getElementById('stock-input').files[0];
                 const finalStockFile = document.getElementById('final-stock-input').files[0];
@@ -159,12 +195,12 @@
                 const loadOutgoingFile = document.getElementById('loadOut-input').files[0];
 
                 // 依次上傳和處理每個文件
-				await uploadFile(inventoryFile, loadInventoryData);
-                await uploadFile(initialStockFile, loadInitialStock);
-                await uploadFile(finalStockFile, loadFinalStock);
-                await uploadFile(currentDetailFile, loadCurrentMonthDetail);
-				await uploadFile(loadIncomingFile, loadIncomingData);
-				await uploadFile(loadOutgoingFile, loadOutgoingData);
+                if (inventoryFile) await uploadFile(inventoryFile, loadInventoryData);
+                if (initialStockFile) await uploadFile(initialStockFile, loadInitialStock);
+                if (finalStockFile) await uploadFile(finalStockFile, loadFinalStock);
+                if (currentDetailFile) await uploadFile(currentDetailFile, loadCurrentMonthDetail);
+                if (loadIncomingFile) await uploadFile(loadIncomingFile, loadIncomingData);
+                if (loadOutgoingFile) await uploadFile(loadOutgoingFile, loadOutgoingData);
 
                 // 將結果輸出到頁面上
                 document.getElementById('output').innerText = JSON.stringify(inventoryData, null, 2);
@@ -174,28 +210,94 @@
             }
         });
 
-        // 下載更新的進銷存 Excel 文件
+        // 下载更新的进销存 Excel 文件
         document.getElementById('download-btn').addEventListener('click', () => {
+            // 在这一点上，我们假定数据已经从 loadInventoryData 中加载完毕
+            let myFileName;
+
+            // 确定从哪里提取文件名，例如从 inventoryData
+            if (inventoryData.total.length > 0) {
+                myFileName = inventoryData.total[0].品號 || '默认文件名'; // 确保为 fileName 提供默认值或合适的地方
+            } else {
+                myFileName = '默认文件名';
+            }
             const summaryData = inventoryData.total.map(item => ({
                 品號: item.品號,
+                廠商: item.廠商,
                 品名: item.品名,
-                保存期限: item.保存期限,
-                本月進貨: item.本月進貨,
-                期初盤點: item.期初盤點,
-                期末盤點: item.期末盤點,
-                調出: item.調出,
-                調入: item.調入,
+                規格: item.規格 || '',
+                盤點單位: item.盤點單位,
+                保存期限: item.保存期限 || '',
+                本月報價: item.本月報價 || '',
+                本月進貨: item.本月進貨 || '',
+                進貨單位: item.進貨單位 || '',
+                期初盤點: item.期初盤點 || '',
+                期末盤點: item.期末盤點 || '',
+                調出: item.調出 || '',
+                調入: item.調入 || '',
+                本月使用量: (item.期初盤點 + item.本月進貨 + item.調入 - item.期末盤點 - item.調出) || '',
+                本月食材成本: ((item.期初盤點 + item.本月進貨 + item.調入 - item.期末盤點 - item.調出) * item.本月報價) || '',
+                週用量: (((item.期初盤點 + item.本月進貨 + item.調入 - item.期末盤點 - item.調出) * sales) / 10000) || ''
             }));
 
+            // 创建新的工作簿
             const newWorkbook = XLSX.utils.book_new();
-            const summaryWorksheet = XLSX.utils.json_to_sheet(summaryData);
+            const summaryWorksheet = XLSX.utils.json_to_sheet([], { skipHeader: true });
+
+            // 将标题行和文件名插入新工作表
+            const headers = Object.keys(summaryData[0]);
+            XLSX.utils.sheet_add_aoa(summaryWorksheet, [[myFileName]], { origin: "A1" });
+
+            // 合并 A1 和 B1 单元格
+            if (!summaryWorksheet['!merges']) summaryWorksheet['!merges'] = [];
+            summaryWorksheet['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } });
+
+            // 插入标题行
+            XLSX.utils.sheet_add_aoa(summaryWorksheet, [headers], { origin: "A2" });
+
+
+            // 从第二行开始插入数据
+            XLSX.utils.sheet_add_json(summaryWorksheet, summaryData, { origin: "A3", skipHeader: true });
+
+            // 自动调整列宽：根据标题和数据
+            const colWidth = headers.map((header, index) => {
+                let maxWidth = header.length;
+
+                summaryData.forEach(row => {
+                    const cellValue = row[header] ? String(row[header]) : "";
+                    maxWidth = Math.max(maxWidth, cellValue.length);
+                });
+                return { wch: maxWidth + 2 }; // 增加额外宽度
+            });
+
+            // 设置列宽
+            summaryWorksheet['!cols'] = colWidth;
+
+    // 设置边框
+    const range = XLSX.utils.decode_range(summaryWorksheet['!ref']);  // 获取单元格范围
+
+    for (let row = range.s.r; row <= range.e.r; ++row) {
+        for (let col = range.s.c; col <= range.e.c; ++col) {
+            const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+            if (!summaryWorksheet[cellAddress]) summaryWorksheet[cellAddress] = {}; // 确保单元格存在
+
+            summaryWorksheet[cellAddress].s = {
+                border: {
+                    top: { style: 'thin', color: { rgb: '000000' } },
+                    left: { style: 'thin', color: { rgb: '000000' } },
+                    bottom: { style: 'thin', color: { rgb: '000000' } },
+                    right: { style: 'thin', color: { rgb: '000000' } }
+                }
+            };
+        }
+    }
+           // 将工作表添加到工作簿
             XLSX.utils.book_append_sheet(newWorkbook, summaryWorksheet, "進銷存報告");
 
-            // 儲存匯總報告
+            // 保存汇总报告
             XLSX.writeFile(newWorkbook, "進銷存報告.xlsx");
             console.log('報告生成成功: 進銷存報告.xlsx');
             alert('報告生成成功: 進銷存報告.xlsx');
-        });
-    </script>
+        });    </script>
 </body>
 </html>

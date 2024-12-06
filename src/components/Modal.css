@@ -61,15 +61,15 @@ body {
         border: none; /* 明確設置無邊框 */
         box-shadow: none;
     }
-#name {
-        width: auto;
+#品名 {
+        max-width: 336px;
         text-align: left;
     }
 
-#spec {
-    width:32px;
-}
 
+#校期 {
+    max-width: 128px;
+}
 /* Button Styles */
 button {
     border-radius: 8px;
@@ -208,10 +208,18 @@ tr {
 
 /* Media Query for Mobile (Hide Product Code) */
 @media (max-width: 767px) {
-    #product-code {
+    #編號 {
+        display: none; /* 移除產品編號在行動裝置上 */
+        max-width: 106px;
+    }
+    #數量-固 {
+        max-width: 68px;
         display: none; /* 移除產品編號在行動裝置上 */
     }
-
+    #單位 {
+        max-width: 32px;
+        display: none; /* 移除產品編號在行動裝置上 */
+    }
     .container {
         width: 100%; /* 使用設備的完整寬度 */
         padding: 10px;
@@ -237,39 +245,10 @@ tr {
 
 }
 
-/* Responsive Modal Styles */
-@media (min-width: 600px) {
-    #butter-code {
-        display: none; /* 移除產品編號在行動裝置上 */
-    }
-    .modal-content {
-        max-width: calc(100% - 20%);
-        max-height: calc(100% - 20%);
-    }
-    .header-container {
-        max-width: 720px; /* 最大寬度設為720px */
-        width: 100%; /* 寬度佔滿 */
-        padding: 0 5px; /* 左右內邊距 */
-        margin: 0 auto; /* 使容器居中 */
-    }
-    .in-table {
-        background: #f5f5f5;
-        box-shadow: inset 0 1px 0 #fff;
-        width: 100%;
-        max-width: 720px; /* 確保底部表格的最大寬度為720px */
-        margin: 20px auto; /* 自動居中，上下邊距 */
-        max-height: 100%;
-        overflow: auto;
-        display: block;
-        border-collapse: collapse;
-        border: 1px solid #ccc;
-        border-radius: 10px;
-    }
 
-}
 
 @media (min-width: 1024px) {
-    #butter-code {
+    #數量-行 {
         display: none; /* 移除產品編號在行動裝置上 */
     }
     .modal-content {
@@ -299,6 +278,9 @@ tr {
 
 /* 微電腦樣式 */
 @media (min-width: 768px) {
+    #數量-行 {
+        display: none; /* 移除產品編號在行動裝置上 */
+    }
     .container {
         max-width: 720px; /* 設置最大寬度為720px */
         margin: auto; /* 水平置中 */
@@ -328,4 +310,15 @@ tr {
 
    list-style: none
 
+}
+input[type=file] {
+    box-sizing: border-box;
+    margin: 10px 0;
+    width: 100%;
+    height: 100%;
+    padding: 1.5px 0 0 2px;
+    font-weight: 500;
+    border: 2px solid #e8e8e8;
+    appearance: none;
+    border-radius: 3px;
 }

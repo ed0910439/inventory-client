@@ -10,6 +10,8 @@ import GuideModal from './components/GuideModal';
 import Modal from './components/Modal';
 import BouncyComponent from './BouncyComponent';
 import StartInventory from './components/StartInventory';
+import InventoryUploader from './components/InventoryUploader';
+
 import { setCookie, getCookie } from './utils/cookie';
 
 const socket = io('https://inventory.edc-pws.com'); //  連線到 Socket.IO 伺服器
@@ -52,7 +54,7 @@ const App = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
     const [actionToConfirm, setActionToConfirm] = useState(null); // 'clearQuantities' 或 'clearExpiryDates'
-
+    const [isInventoryUploaderOpen, setIsInventoryUploaderOpen] = useState(false);
     useEffect(() => {
         const fetchProducts = async () => {
             setLoading(true);
@@ -336,6 +338,7 @@ const App = () => {
                                     </td>
                                     <td rowSpan="2" className="header-table.right">
                                         <button className="header-button" onClick={() => setShowGuide(true)}>說明</button>
+                                        <button className="header-button" onClick={() => setIsInventoryUploaderOpen (true)}>盤點開始</button>
                                         <button className="header-button" onClick={() => setIsProductModalOpen(true)}>新增</button>
                                         <button id="butter-code" className="header-button" onClick={() => setIsFilterModalOpen(true)}>篩選</button>
                                         <button className="header-button" onClick={() => setIsArchiveModalOpen(true)}>歸檔</button>
@@ -371,7 +374,7 @@ const App = () => {
                                         {vendor}
                                     </label>
                                 ))}<br />
-                                <label>　　　<strong>溫層</strong>：</label>
+                                <label>　　　<strong>庫別</strong>：</label>
                                 {['冷藏', '冷凍', '常溫', '清潔', '備品'].map(layer => (
                                     <label key={layer} className="filter-item">
                                         <input type="checkbox" checked={selectedLayers.includes(layer)} onChange={() => handleLayerChange(layer)} />
@@ -395,10 +398,10 @@ const App = () => {
             <table className="in-table">
                 <thead>
                     <tr>
-                        <th id="product-code" className="in-th">商品編號</th>
+                        <th id="編號" className="in-th">商品編號</th>
                         <th className="in-th">商品名稱</th>
                         <th className="in-th">數量</th>
-                        <th id="product-code" className="in-th">單位</th>
+                        <th id="單位" className="in-th">單位</th>
                         <th className="in-th">到期日</th>
                     </tr>
                 </thead>
@@ -407,12 +410,12 @@ const App = () => {
                     {filteredProducts.map((product, index) => (
                         product.廠商 !== '#N/A' && (
                             <tr key={product.商品編號}>
-                                <td id="product-code" className="in-td">{product.商品編號}</td>
-                                <td className="in-td" id="name" onMouseEnter={(e) => handleMouseEnter(product, e)} onMouseLeave={handleMouseLeave}>{product.商品名稱}</td>
-                                <td id="butter-code" className="in-td" style={{ width: '80px' }}><label><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyDown={(e) => handleKeyPress(e, index)} data-index={index} required /> &nbsp;&nbsp;{product.單位}</label></td>
-                                <td id="product-code" className="in-td"><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyDown={(e) => handleKeyPress(e, index)} data-index={index} required /></td>
-                                <td id="product-code" className="in-td">{product.單位}</td>
-                                <td className="in-td"><input className='date' type="date" value={product.到期日 ? new Date(product.到期日).toISOString().split('T')[0] : ""} onChange={(e) => handleExpiryDateChange(product.商品編號, e.target.value)} /*disabled={disabledVendors.includes(product.廠商)} */ /></td>
+                                <td id="編號" className="in-td">{product.商品編號}</td>
+                                <td id="品名" className="in-td"  onMouseEnter={(e) => handleMouseEnter(product, e)} onMouseLeave={handleMouseLeave}>{product.商品名稱}</td>
+                                <td id="數量-行" className="in-td" style={{ width: '80px' }}><label><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyDown={(e) => handleKeyPress(e, index)} data-index={index} required /> &nbsp;&nbsp;{product.單位}</label></td>
+                                <td id="數量-固" className="in-td"><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyDown={(e) => handleKeyPress(e, index)} data-index={index} required /></td>
+                                <td id="單位" className="in-td">{product.單位}</td>
+                                <td id="校期" className="in-td"><input className='date' type="date" value={product.到期日 ? new Date(product.到期日).toISOString().split('T')[0] : ""} onChange={(e) => handleExpiryDateChange(product.商品編號, e.target.value)} /*disabled={disabledVendors.includes(product.廠商)} */ /></td>
                             </tr>
                         )))}
                 </tbody>
@@ -468,6 +471,9 @@ const App = () => {
                 期初庫存量：{initialStock}{currentunit}<br />
                 規格：{currentSpec} {/* 顯示規格 */}</div>
             )}
+
+            <InventoryUploader isOpen={isInventoryUploaderOpen} onClose={() => setIsInventoryUploaderOpen(false)} products = { products } setProducts = { setProducts } />
+
             {/* 短暫提示 */}
             {showToast && (<div style={{ position: 'fixed', bottom: '20px', left: '20px', backgroundColor: '#4caf50', color: 'white', padding: '10px', borderRadius: '5px', boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)', zIndex: 1000, }}> {newMessage} </div>
             )}
