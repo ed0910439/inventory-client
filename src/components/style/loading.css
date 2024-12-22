@@ -1,0 +1,170 @@
+﻿
+body {
+    background-color: #e6e6f1;
+}
+
+.box {
+    width: 500px;
+    height: 200px;
+    background-color: #fff;
+    margin: 50px auto;
+}
+
+    .box h1 {
+        text-align: center;
+        margin: 0;
+        line-height: 200px;
+    }
+
+.effect {
+    position: relative;
+}
+
+.effect:before {
+    left: 10px;
+    -webkit-transform: rotate(-3deg);
+    -moz-transform: rotate(-3deg);
+    -o-transform: rotate(-3deg);
+    -ms-transform: rotate(-3deg);
+    transform: rotate(-3deg);
+}
+
+.effect:after {
+    right: 10px;
+    left: auto;
+    -webkit-transform: rotate(3deg);
+    -moz-transform: rotate(3deg);
+    -o-transform: rotate(3deg);
+    -ms-transform: rotate(3deg);
+    transform: rotate(3deg);
+}
+.scene {
+    position: relative; /* 用于让子元素相对该元素定位 */
+    width: 100%; /* 适应模态框宽度 */
+    height: 200px; /* 固定高度，适合您的动画 */
+    left:0%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center; /* 中心对齐 */
+    align-items: flex-end; /* 底部对齐 */
+}
+
+
+
+
+.loading-text {
+    margin-top: 20px;
+}
+
+/* 动画和其他设置 */
+
+.car {
+    position: absolute;
+    top: 60%;
+    height: auto;
+    width: auto;
+    left: 40%;
+    animation: peel 4s ease-in-out forwards infinite, bump 0.2s linear infinite;
+}
+
+.poof {
+    position: absolute;
+    top: 80%;
+    height: auto;
+    width: auto;
+    left: 0;
+    opacity: 0;
+    animation: poof 4s ease-in-out forwards infinite;
+}
+.sign {
+    position: absolute;
+    top: 15%;
+    height: 70%;
+    right: -60px;
+    animation: sign 4s ease-in-out forwards infinite;
+}
+@keyframes sign {
+    0% {
+        right: -40px;
+    }
+
+    30% {
+        right: 80px;
+    }
+
+    70% {
+        right: 80px;
+    }
+
+    100% {
+        right: 100%;
+    }
+}
+
+@keyframes peel {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    70% {
+        transform: rotate(0deg);
+    }
+
+    73% {
+        transform: rotate(-9deg);
+    }
+
+    95% {
+        transform: rotate(-9deg);
+    }
+
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+@keyframes poof {
+    0% {
+        opacity: 0;
+        transform: scale(1);
+    }
+
+    70% {
+        opacity: 0;
+        left: 170px;
+        transform: scale(1);
+    }
+
+    76% {
+        opacity: 1;
+        transform: scale(1.3);
+        left: 160px;
+    }
+
+    95% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(1.3);
+    }
+}
+
+@keyframes bump {
+    0% {
+        top: 70px;
+    }
+
+    50% {
+        top: 70px;
+    }
+
+    60% {
+        top: 69px;
+    }
+
+    100% {
+        top: 70px;
+    }
+}

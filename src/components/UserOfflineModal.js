@@ -1,7 +1,6 @@
 //UserOfflineModal.js
 
 import React, { useState } from 'react';
-import './Modal.css';
 
 const UserOfflineModal = ({ isOpen, onClose }) => {	    
 

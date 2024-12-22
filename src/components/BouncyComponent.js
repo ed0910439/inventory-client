@@ -1,17 +1,19 @@
+//BouncyComponent.js
 import React from 'react';
-import { bouncy } from 'ldrs'
-
+import './style/loading.css';
 
 const BouncyComponent = () => {
     return (
-        <div>
-            <h1>載入中...<l-bouncy
-                size="45"
-                speed="1.75"
-                color="black"
-            ></l-bouncy>
-			</h1>
-        </div>
+            <div className="box effect">
+
+                <div className="scene">
+                    <img className="car" src='/images/car.svg' alt="Car" />
+                    <img className="poof" src='/images/poof.svg' alt="Poof" />
+                    <img className="sign" src='/images/sign.svg' alt="Sign" />
+                    <em>LOADING...</em>
+                </div>
+            </div>
+        
     );
 };
 

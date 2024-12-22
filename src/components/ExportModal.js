@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import './Modal.css';
 
 const ExportModal = ({ isOpen, onClose, products }) => {
     const [year, setYear] = useState('');

@@ -5,7 +5,7 @@ h1, h2 {
 
 body {
     font-family: "Chocolate Classical Sans", sans-serif;
-    font-weight: normal; /* 使用 'normal' 而非 'revert-layer' */
+    font-weight: normal;
     font-style: normal;
     display: flex;
     justify-content: center;
@@ -41,54 +41,69 @@ body {
     justify-content: center;
     padding: 10px 0; /* 更好的垂直間距 */
     z-index: 1000;
-    }
-
+}
 
 /* Table Styles */
 .header-table {
-    width: 100%; /* 表格寬度佔滿容器 */
+    width: 100%;
     margin: 0;
-    border: none; /* 明確設置無邊框 */
+    border: none;
     box-shadow: none;
 }
-    .td.header-table {
-        text-align: left;
-        border: none; /* 明確設置無邊框 */
-        box-shadow: none;
-    }
+
+.td.header-table {
+    text-align: left;
+    border: none;
+    box-shadow: none;
+}
+
     .td.header-table.right {
         text-align: right;
-        border: none; /* 明確設置無邊框 */
+        border: none;
         box-shadow: none;
     }
-#品名 {
-        max-width: 336px;
-        text-align: left;
-    }
 
+#商品名稱 {
+    max-width: 336px;
+    text-align: left;
+}
 
-#校期 {
+#到期日 {
     max-width: 128px;
 }
+
 /* Button Styles */
 button {
     border-radius: 8px;
     background-color: #444;
     color: snow;
     padding: 5px 10px;
-    border: none; /* 明確設置無邊框 */
+    border: none;
     margin: 0 3px 0 0;
 }
 
 /* Input Styles */
 input {
     border-radius: 5px;
-    border: solid; /* 明確設置無邊框 */
+    border: groove;
     border-width: 1px;
     border-color: #666666;
-    height: 18px;
-    padding: 0.5px 3px;
+    height: 20px;
+    padding: 0.5px;
 }
+    input[type="checkbox"] {
+        width: 15px;
+        padding: 0.5px 0.5px -20px 0.5px;
+        margin: 0.5px 0.5px -20px 0.5px;
+        align-items: flex-end;
+    }
+
+    
+    
+    input#year {
+        width: 60px;
+        text-align: right;
+    }
 
     input[type="number"] {
         width: 40px;
@@ -100,7 +115,7 @@ input {
     }
 
     input.name {
-        width: 50%; /* 設置特定類型的輸入框寬度 */
+        width: 50%;
     }
 
     input[name="單位"] {
@@ -121,32 +136,82 @@ input {
     background-color: #666666;
 }
 
+#style-3::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    background-color: #ffffff;
+}
+
+#style-3::-webkit-scrollbar {
+    width: 6px;
+    background-color: black;
+}
+
+#style-3::-webkit-scrollbar-thumb {
+    background-color: #666666;
+}
+
+/* 橫向滾動條樣式 */
+.list::-webkit-scrollbar {
+    height: 6px; /* 設置滾動條的高度 */
+    background-color: #fff; /* 滾動條的背景顏色 */
+}
+
+.list:hover::-webkit-scrollbar-track {
+
+    background-color: #fff; /* 滾動條的背景顏色 */
+    border-radius: 6px; /* 滾動條的圓角寬度 */
+}
+
+.list:hover::-webkit-scrollbar-thumb {
+    background-color: #c0cecc; /* 滾動條的顏色 */
+    border-radius: 6px; /* 圓角 */
+}
+
+    .list:hover::-webkit-scrollbar-thumb:hover {
+        background-color: #c0cedc; /* 滾動條被鼠標懸停時的顏色 */
+    }
+
+    .list:hover::-webkit-scrollbar-thumb:horizontal {
+        -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3); /* 鼠標懸停時的陰影效果 */
+        background-color: #c0cedc; /* 滾動條的顏色 */
+
+        height: 6px; /* 設置滾動條的高度 */
+        outline: 2px solid #fff; /* 外邊框顏色 */
+        outline-offset: -2px; /* 外邊框偏移 */
+    }
+
+/* 額外樣式選擇器來強大配置 */
+.list {
+    overflow-x: auto; /* 啟用橫向滾動 */
+    white-space: nowrap; /* 防止換行 */
+}
+
 /* Fixed Header Styles */
 .fixed-header {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    background-color: white; /* 背景設為白色 */
+    background-color: white;
     z-index: 1000;
     padding: 10px 0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* 提供顯示效果 */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* Table Container Styles */
 .table-container {
-    margin-top: 120px; /* 根據固定標題的實際高度調整此值 */
-    overflow-y: auto; /* 使表格內容可滾動 */
-    max-height: calc(100vh - 120px); /* 確保表格可滾動區域 */
+    margin-top: 120px;
+    overflow-y: auto;
+    max-height: calc(100vh - 120px);
     border-radius: 10px;
 }
 
 /* Filter Bubble Styles */
 .filter-bubble {
-    width: 300px; /* 調整寬度 */
+    width: 300px;
     display: flex;
     flex-direction: column;
-    transform: translateY(100px); /* 調整動畫效果 */
+    transform: translateY(100px);
     opacity: 0;
     pointer-events: none;
     transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
@@ -158,9 +223,6 @@ input {
         pointer-events: auto;
     }
 
-/* Table Styles */
-
-
 /* Table Header Styles */
 .in-th {
     background: url(https://jackrugile.com/images/misc/noise-diagonal.png), linear-gradient(#777, #444);
@@ -171,9 +233,9 @@ input {
     padding: 7px 10px;
     position: sticky;
     top: 0;
-    background-color: #ffffff; /* 滾動時固定標題行正常顯示背景 */
+    background-color: #ffffff;
     z-index: 10;
-    border-radius: 0px;
+    border-radius: 0;
 }
 
 /* Table Cell Styles */
@@ -193,6 +255,7 @@ input {
 tr {
     background: url(https://jackrugile.com/images/misc/noise-diagonal.png);
 }
+
     /* Last Row Styles */
     tr:last-of-type td {
         box-shadow: inset 0 -1px 0 #fff;
@@ -212,29 +275,37 @@ tr {
         display: none; /* 移除產品編號在行動裝置上 */
         max-width: 106px;
     }
+
     #數量-固 {
         max-width: 68px;
-        display: none; /* 移除產品編號在行動裝置上 */
+        display: none; /* 移除產品數量在行動裝置上 */
     }
+
     #單位 {
         max-width: 32px;
-        display: none; /* 移除產品編號在行動裝置上 */
+        display: none; /* 移除產品單位在行動裝置上 */
     }
+
+    #product-code {
+        display: none; /* 移除產品碼在行動裝置上 */
+    }
+
     .container {
         width: 100%; /* 使用設備的完整寬度 */
         padding: 10px;
     }
+
     .header-container {
         width: 100%; /* 寬度佔滿 */
         padding: 0 5px; /* 左右內邊距 */
         margin: 0 auto; /* 使容器居中 */
-
     }
+
     .in-table {
         background: #f5f5f5;
         box-shadow: inset 0 1px 0 #fff;
         width: 100%;
-        margin: 20px auto; /* 自動居中，上下邊距 */
+        margin: 400px auto 20px auto; /* 自動居中，上下邊距 */
         max-height: 100%;
         overflow: auto;
         display: block;
@@ -242,37 +313,41 @@ tr {
         border: 1px solid #ccc;
         border-radius: 10px;
     }
-
 }
-
-
 
 @media (min-width: 1024px) {
     #數量-行 {
         display: none; /* 移除產品編號在行動裝置上 */
     }
+
     .modal-content {
         max-width: calc(100% - 30%);
         max-height: calc(100% - 30%);
     }
+
     .header-container {
         max-width: 720px; /* 最大寬度設為720px */
         width: 100%; /* 寬度佔滿 */
         padding: 0 5px; /* 左右內邊距 */
         margin: 0 auto; /* 使容器居中 */
     }
+
     .in-table {
         background: #f5f5f5;
         box-shadow: inset 0 1px 0 #fff;
         width: 100%;
         max-width: 720px; /* 確保底部表格的最大寬度為720px */
-        margin: 20px auto; /* 自動居中，上下邊距 */
+        margin: 400px auto 20px auto; /* 自動居中，上下邊距 */
         max-height: 100%;
         overflow: auto;
         display: block;
         border-collapse: collapse;
         border: 1px solid #ccc;
         border-radius: 10px;
+    }
+
+    #butter-code {
+        display: none;
     }
 }
 
@@ -281,23 +356,25 @@ tr {
     #數量-行 {
         display: none; /* 移除產品編號在行動裝置上 */
     }
-    .container {
-        max-width: 720px; /* 設置最大寬度為720px */
-        margin: auto; /* 水平置中 */
-        padding: 10px;
+
+    .modal-content {
+        max-width: calc(100% - 30%);
+        max-height: calc(100% - 30%);
     }
+
     .header-container {
         max-width: 720px; /* 最大寬度設為720px */
         width: 100%; /* 寬度佔滿 */
         padding: 0 5px; /* 左右內邊距 */
         margin: 0 auto; /* 使容器居中 */
     }
+
     .in-table {
         background: #f5f5f5;
         box-shadow: inset 0 1px 0 #fff;
         width: 100%;
         max-width: 720px; /* 確保底部表格的最大寬度為720px */
-        margin: 20px auto; /* 自動居中，上下邊距 */
+        margin: 400px auto 20px auto; /* 自動居中，上下邊距 */
         max-height: 100%;
         overflow: auto;
         display: block;
@@ -305,12 +382,17 @@ tr {
         border: 1px solid #ccc;
         border-radius: 10px;
     }
-}
-.li{
 
-   list-style: none
-
+    #butter-code {
+        display: none;
+    }
 }
+
+/* 自定義樣式 */
+.li {
+    list-style: none; /* 取消列表項目的樣式 */
+}
+
 input[type=file] {
     box-sizing: border-box;
     margin: 10px 0;
@@ -322,3 +404,4 @@ input[type=file] {
     appearance: none;
     border-radius: 3px;
 }
+

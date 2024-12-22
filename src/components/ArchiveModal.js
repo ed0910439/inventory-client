@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import './Modal.css';
 import axios from 'axios';
 import { exportToExcel } from './ExportToExcel';
 
@@ -15,7 +14,7 @@ const ArchiveModal = ({ isOpen, onClose, products }) => {
         }
 
         try {
-            const response = await axios.post(`https://inventory.edc-pws.com/api/archive`, {
+            const response = await axios.post(`http://localhost:4000/api/archive`, {
                 year, month, password
             });
 
