@@ -48,7 +48,7 @@ const InventoryUploader = forwardRef((props, ref) => {
             await delay(1000); // 等待1秒
 
             // 檢查伺服器連接狀態
-            const serverResponse = await axios.get('http://localhost:4000/api/checkConnections');
+            const serverResponse = await axios.get('https://inventory.edc-pws.com/api/checkConnections');
             setServerConnected(serverResponse.data.serverConnected);
             console.log('Server status:', serverResponse.data.serverConnected);
 
@@ -56,7 +56,7 @@ const InventoryUploader = forwardRef((props, ref) => {
             await delay(1000); // 再次等待1秒
 
             // 檢查 EPOS 主機連接狀態
-            const eposResponse = await axios.get('http://localhost:4000/api/ping');
+            const eposResponse = await axios.get('https://inventory.edc-pws.com/api/ping');
             setEposConnected(eposResponse.data.eposConnected);
             console.log('EPOS status:', eposResponse.data.eposConnected);
 
@@ -78,7 +78,7 @@ const InventoryUploader = forwardRef((props, ref) => {
         }
         setLoading(true);
         try {
-            const response = await axios.get(`http://localhost:4000/api/startInventory/${props.storeName}`);
+            const response = await axios.get(`https://inventory.edc-pws.com/api/startInventory/${props.storeName}`);
             setFirstNewProducts(response.data);
             setCompletedProducts(response.data.map(product => ({
                 ...product,
@@ -134,7 +134,7 @@ const InventoryUploader = forwardRef((props, ref) => {
         }));
 
         try {
-            await axios.post(`http://localhost:4000/api/saveCompletedProducts/${props.storeName}`, preparedProducts);
+            await axios.post(`https://inventory.edc-pws.com/api/saveCompletedProducts/${props.storeName}`, preparedProducts);
             setModalContent({
                 title: '成功',
                 message: '數據保存成功！正在刷新盤點數據。',

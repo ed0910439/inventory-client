@@ -9,7 +9,7 @@ const ProductList = ({ storeName }) => {
         const fetchProducts = async () => {
             setLoading(true);
             try {
-                const response = await axios.get(`http://localhost:4000/api/products/${storeName}`);
+                const response = await axios.get(`https://inventory.edc-pws.com/api/products/${storeName}`);
                 if (response.status !== 204) {
                     setProducts(response.data);
                 }

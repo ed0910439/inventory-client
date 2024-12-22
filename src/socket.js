@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+ï»¿import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import io from 'socket.io-client';
 import ExportModal from './components/ExportModal';
@@ -10,10 +10,10 @@ import BouncyComponent from './BouncyComponent';
 import InventoryUploader from './components/InventoryUploader';
 import { setCookie, getCookie } from './utils/cookie';
 
-const socket = io('http://localhost:4000'); //  ³s½u¨ì Socket.IO ¦øªA¾¹
+const socket = io('https://inventory.edc-pws.com'); //  é€£ç·šåˆ° Socket.IO ä¼ºæœå™¨
 
 const App = () => {
-    // ª¬ºAÅÜ¼Æ
+    // ç‹€æ…‹è®Šæ•¸
     const [showFunctionButtons, setShowFunctionButtons] = useState(false);
     const [isNewProductModalOpen, setIsNewProductModalOpen] = useState(false);
     const [products, setProducts] = useState([]);
@@ -23,10 +23,10 @@ const App = () => {
     const [selectedLayers, setSelectedLayers] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [showToast, setShowToast] = useState(false);
-    const [connectionStatus, setConnectionStatus] = useState('³s½u¤¤...'); // ªì©lª¬ºA§ï¬°³s½u¤¤
+    const [connectionStatus, setConnectionStatus] = useState('é€£ç·šä¸­...'); // åˆå§‹ç‹€æ…‹æ”¹ç‚ºé€£ç·šä¸­
     const [showGuide, setShowGuide] = useState(false);
-    const [isOffline, setIsOffline] = useState(false); // ¨Ï¥Î§óÂ²¼äªºÅÜ¼Æ¦WºÙ
-    const [errorModal, setErrorModal] = useState(null); // Åã¥Ü¿ù»~°T®§ªº Modal
+    const [isOffline, setIsOffline] = useState(false); // ä½¿ç”¨æ›´ç°¡æ½”çš„è®Šæ•¸åç¨±
+    const [errorModal, setErrorModal] = useState(null); // é¡¯ç¤ºéŒ¯èª¤è¨Šæ¯çš„ Modal
     const [modalContent, setModalContent] = useState({});
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
@@ -46,75 +46,75 @@ const App = () => {
     const [isReconnectPromptVisible, setIsReconnectPromptVisible] = useState(false);
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
-    const [actionTonfirm, setActionToConfirm] = useState(null); // 'clearQuantities' ©Î 'clearExpiryDates'
+    const [actionTonfirm, setActionToConfirm] = useState(null); // 'clearQuantities' æˆ– 'clearExpiryDates'
     const [isInventoryUploaderOpen, setIsInventoryUploaderOpen] = useState(false);
     const [currentProduct, setCurrentProduct] = useState(null);
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
     const [storeName, setStoreName] = useState('noStart');
-    const allVendors = ['¥ş¥x', '¥¡¼p', '¤ı®y-³Æ', '¤ı®y-­¹', '©¾ªY', '¶}¤¸', '¸Î¶P', '¬ü­¹®a', 'ÂI½uÄÑ'];
-    const allLayers = ['¥¼¨Ï¥Î', '§NÂÃ', '§N­á', '±`·Å', '²M¼ä', '³Æ«~'];
-    const stores = ['¥x¥_¨Ê¯¸', '·s©±¨Ê¯¸', '«H¸q«Â¨q']; // ¹w©w¸qªºªù¥«¦Cªí
+    const allVendors = ['å…¨å°', 'å¤®å»š', 'ç‹åº§-å‚™', 'ç‹åº§-é£Ÿ', 'å¿ æ¬£', 'é–‹å…ƒ', 'è£•è³€', 'ç¾é£Ÿå®¶', 'é»ç·šéºµ'];
+    const allLayers = ['æœªä½¿ç”¨', 'å†·è—', 'å†·å‡', 'å¸¸æº«', 'æ¸…æ½”', 'å‚™å“'];
+    const stores = ['å°åŒ—äº¬ç«™', 'æ–°åº—äº¬ç«™', 'ä¿¡ç¾©å¨ç§€']; // é å®šç¾©çš„é–€å¸‚åˆ—è¡¨
     useEffect(() => {
         const fetchProducts = async () => {
             setLoading(true);
             try {
-                const response = await axios.get(`http://localhost:4000/api/products/${storeName}`);
+                const response = await axios.get(`https://inventory.edc-pws.com/api/products/${storeName}`);
                 if (response.status === 204) {
                     setLoading(false);
                     setIsOffline(false);
                     return;
                 } else {
                     setProducts(response.data);
-                    setConnectionStatus('³s±µ¦¨¥\ ?');
+                    setConnectionStatus('é€£æ¥æˆåŠŸ âœ”');
                     setLoading(false);
-                    setIsOffline(false); // ºô¸ô³s½u¦¨¥\¡A§ó·sÂ÷½uª¬ºA
+                    setIsOffline(false); // ç¶²è·¯é€£ç·šæˆåŠŸï¼Œæ›´æ–°é›¢ç·šç‹€æ…‹
                 }
             } catch (error) {
-                handleError(error, '¨ú±o²£«~¥¢±Ñ'); // ¨Ï¥Î·sªº¿ù»~³B²z¨ç¦¡
-                setConnectionStatus('¥¢¥h³s½u ?');
-                setIsOffline(true); // ºô¸ô³s½u¥¢±Ñ¡A§ó·sÂ÷½uª¬ºA
+                handleError(error, 'å–å¾—ç”¢å“å¤±æ•—'); // ä½¿ç”¨æ–°çš„éŒ¯èª¤è™•ç†å‡½å¼
+                setConnectionStatus('å¤±å»é€£ç·š âŒ');
+                setIsOffline(true); // ç¶²è·¯é€£ç·šå¤±æ•—ï¼Œæ›´æ–°é›¢ç·šç‹€æ…‹
             } finally {
                 setLoading(false);
             }
         };
 
         const guideShown = getCookie(cookieName);
-        if (!guideShown) { // ¦pªG cookie ¤£¦s¦b
-            // ³]©w¤@­Ó©µ¿ğ¡A½T«O¤¸¥ó§¹¥ş¸ü¤J«á¦AÅã¥Ü»¡©ú¤â¥U
+        if (!guideShown) { // å¦‚æœ cookie ä¸å­˜åœ¨
+            // è¨­å®šä¸€å€‹å»¶é²ï¼Œç¢ºä¿å…ƒä»¶å®Œå…¨è¼‰å…¥å¾Œå†é¡¯ç¤ºèªªæ˜æ‰‹å†Š
             setTimeout(() => {
-                setShowGuide(true); // Åã¥Ü»¡©ú¤â¥U
-                setCookie(cookieName, cookieValue); // ³]©w cookie¡A¤U¦¸´N¤£·|¦AÅã¥Ü
-            }, 1000); // ©µ¿ğ 1 ¬í (¥i®Ú¾Ú»İ­n½Õ¾ã)
+                setShowGuide(true); // é¡¯ç¤ºèªªæ˜æ‰‹å†Š
+                setCookie(cookieName, cookieValue); // è¨­å®š cookieï¼Œä¸‹æ¬¡å°±ä¸æœƒå†é¡¯ç¤º
+            }, 1000); // å»¶é² 1 ç§’ (å¯æ ¹æ“šéœ€è¦èª¿æ•´)
         }
 
 
         fetchProducts();
 
-        // Socket.IO ¨Æ¥óºÊÅ¥
+        // Socket.IO äº‹ä»¶ç›£è½
         socket.on('updateUserCount', setUserCount);
         socket.on('productUpdated', (updatedProduct) => {
-            setProducts(prevProducts => prevProducts.map(product => product.°Ó«~½s¸¹ === updatedProduct.°Ó«~½s¸¹ ? updatedProduct : product
+            setProducts(prevProducts => prevProducts.map(product => product.å•†å“ç·¨è™Ÿ === updatedProduct.å•†å“ç·¨è™Ÿ ? updatedProduct : product
             ));
-            setNewMessage(`${updatedProduct.°Ó«~¦WºÙ} ¼Æ¶qÅÜ§ó¬° ${updatedProduct.¼Æ¶q}`);
+            setNewMessage(`${updatedProduct.å•†å“åç¨±} æ•¸é‡è®Šæ›´ç‚º ${updatedProduct.æ•¸é‡}`);
             setShowToast(true);
             setTimeout(() => setShowToast(false), 4000);
         });
 
-        // ºô¸ô³s½uª¬ºAºÊÅ¥ (»İ­n®Ú¾ÚÂsÄı¾¹Àô¹Ò½Õ¾ã)
+        // ç¶²è·¯é€£ç·šç‹€æ…‹ç›£è½ (éœ€è¦æ ¹æ“šç€è¦½å™¨ç’°å¢ƒèª¿æ•´)
         const handleOnline = () => {
-            setConnectionStatus('³s½u¦¨¥\ ?');
+            setConnectionStatus('é€£ç·šæˆåŠŸ âœ”');
             setIsOffline(false);
 
         };
         const handleOffline = () => {
-            setConnectionStatus('¥¢¥h³s½u ?');
+            setConnectionStatus('å¤±å»é€£ç·š âŒ');
             setIsOffline(true);
 
         };
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
 
-        // ²M°£¨ç¦¡
+        // æ¸…é™¤å‡½å¼
         return () => {
             socket.off('updateUserCount', setUserCount);
             socket.off('productUpdated');
@@ -125,18 +125,18 @@ const App = () => {
     }, []);
 
     const handleStoreChange = (event) => {
-        setStoreName(event.target.value); // §ó·s¤w¿ï¾Üªºªù¥«¦WºÙ
+        setStoreName(event.target.value); // æ›´æ–°å·²é¸æ“‡çš„é–€å¸‚åç¨±
     };
 
     const startInventory = () => {
-        // ­n¥ı½T»{ storeName ¬O§_¦³­È
+        // è¦å…ˆç¢ºèª storeName æ˜¯å¦æœ‰å€¼
         if (!storeName) {
-            alert('½Ğ¿ï¾Üªù¥«¡I'); // ±NÀx¦s§ï¬°ª½±µ´£¥Ü¥Î¤á
+            alert('è«‹é¸æ“‡é–€å¸‚ï¼'); // å°‡å„²å­˜æ”¹ç‚ºç›´æ¥æç¤ºç”¨æˆ¶
             return;
         }
 
         if (inventoryUploaderRef.current) {
-            inventoryUploaderRef.current.startInventory(); // ½Õ¥Î¤l²Õ¥óªº¤èªk
+            inventoryUploaderRef.current.startInventory(); // èª¿ç”¨å­çµ„ä»¶çš„æ–¹æ³•
         }
     };
 
@@ -144,12 +144,12 @@ const App = () => {
     const handleProductSubmit = (productDetails) => {
         axios.post('/api/updateProduct', productDetails)
             .then(response => {
-                console.log('§ó·s¦¨¥\:', response.data);
+                console.log('æ›´æ–°æˆåŠŸ:', response.data);
                 setIsModalOpen(false);
-                setProducts(products.filter(p => p.°Ó«~½s¸¹ !== productDetails.°Ó«~½s¸¹));
+                setProducts(products.filter(p => p.å•†å“ç·¨è™Ÿ !== productDetails.å•†å“ç·¨è™Ÿ));
             })
             .catch(error => {
-                console.error('§ó·s¥¢±Ñ:', error);
+                console.error('æ›´æ–°å¤±æ•—:', error);
             });
     };
 
@@ -159,15 +159,15 @@ const App = () => {
     };
 
 
-    // ¿ù»~³B²z¨ç¦¡
+    // éŒ¯èª¤è™•ç†å‡½å¼
     const handleError = (error, defaultMessage) => {
         const errorMessage = error.response ? error.response.data.message || error.response.data : error.message || defaultMessage;
-        setErrorModal({ title: '¿ù»~°T®§', message: errorMessage });
+        setErrorModal({ title: 'éŒ¯èª¤è¨Šæ¯', message: errorMessage });
         setIsModalOpen(true);
     };
 
     const handleReconnect = () => {
-        setConnectionStatus('³s±µ¦¨¥\ ?');
+        setConnectionStatus('é€£æ¥æˆåŠŸ âœ”');
         setIsUserOffline(false);
         setIsReconnectPromptVisible(false);
 
@@ -176,73 +176,73 @@ const App = () => {
 
 
     const handleReload = () => {
-        window.location.reload(); // ­«·s¥[¸ü­¶­±
+        window.location.reload(); // é‡æ–°åŠ è¼‰é é¢
         setIsModalOpen(false);
     };
     const handleBlur = () => {
         setHoveredProduct(null);
         setInitialStock('');
     };
-    // ±±¨î¼t°Ó¿z¿ï
+    // æ§åˆ¶å» å•†ç¯©é¸
     const handleVendorChange = (vendor) => {
         setSelectedVendors((prev) => prev.includes(vendor) ? prev.filter(v => v !== vendor) : [...prev, vendor]
         );
     };
 
-    // ±±¨î·Å¼h¿z¿ï
+    // æ§åˆ¶æº«å±¤ç¯©é¸
     const handleLayerChange = (layer) => {
         setSelectedLayers((prev) => prev.includes(layer) ? prev.filter(l => l !== layer) : [...prev, layer]
         );
     };
 
-    // ®Ú¾Ú©Ò¿ïªº¼t°Ó©M·Å¼h¹LÂo²£«~
+    // æ ¹æ“šæ‰€é¸çš„å» å•†å’Œæº«å±¤éæ¿¾ç”¢å“
     const filteredProducts = products.filter(product => {
-        const vendorMatch = selectedVendors.length === 0 || selectedVendors.includes(product.¼t°Ó);
-        const layerMatch = selectedLayers.length === 0 || selectedLayers.includes(product.·Å¼h);
-        return vendorMatch && layerMatch; // ¥uÅã¥Ü²Å¦X¿z¿ï±ø¥óªº²£«~
+        const vendorMatch = selectedVendors.length === 0 || selectedVendors.includes(product.å» å•†);
+        const layerMatch = selectedLayers.length === 0 || selectedLayers.includes(product.æº«å±¤);
+        return vendorMatch && layerMatch; // åªé¡¯ç¤ºç¬¦åˆç¯©é¸æ¢ä»¶çš„ç”¢å“
     });
 
     const handleKeyPress = (event, index) => {
         if (event.key === 'Enter') {
             const nextInput = inputRefs.current[index + 1];
             if (nextInput) {
-                nextInput.focus(); // ±NµJÂI²¾¨ì¤U¤@­Ó¿é¤J®Ø
+                nextInput.focus(); // å°‡ç„¦é»ç§»åˆ°ä¸‹ä¸€å€‹è¼¸å…¥æ¡†
             }
         }
     };
 
-    //¤U¸ü³Ì·s¼Æ¶q
+    //ä¸‹è¼‰æœ€æ–°æ•¸é‡
     const updateQuantity = async (productCode, quantity) => {
         try {
-            await axios.put(`http://localhost:4000/api/products/${productCode}/quantity/${storeName}`, { ¼Æ¶q: quantity });
+            await axios.put(`https://inventory.edc-pws.com/api/products/${productCode}/quantity/${storeName}`, { æ•¸é‡: quantity });
         } catch (error) {
-            console.error("§ó·s²£«~®É¥X¿ù:", error);
+            console.error("æ›´æ–°ç”¢å“æ™‚å‡ºéŒ¯:", error);
         }
     };
-    //¤U¸ü³Ì·s®Õ´Á
+    //ä¸‹è¼‰æœ€æ–°æ ¡æœŸ
     const updateExpiryDate = async (productCode, expiryDate) => {
         try {
-            await axios.put(`http://localhost:4000/api/products/${productCode}/expiryDate/${storeName}`, { ¨ì´Á¤é: expiryDate });
+            await axios.put(`https://inventory.edc-pws.com/api/products/${productCode}/expiryDate/${storeName}`, { åˆ°æœŸæ—¥: expiryDate });
         } catch (error) {
-            console.error("§ó·s¨ì´Á¤é®É¥X¿ù:", error);
+            console.error("æ›´æ–°åˆ°æœŸæ—¥æ™‚å‡ºéŒ¯:", error);
         }
     };
-    //¤W¶Ç¼Æ¶q
+    //ä¸Šå‚³æ•¸é‡
     const handleQuantityChange = (productCode, quantity) => {
-        // ¿é¤JÅçÃÒ: ½T«O¼Æ¶q¬°«D­t¼Æ
+        // è¼¸å…¥é©—è­‰: ç¢ºä¿æ•¸é‡ç‚ºéè² æ•¸
         const numQuantity = Number(quantity);
         if (isNaN(numQuantity) || numQuantity < 0) {
-            alert('¼Æ¶q¥²¶·¬°«D­t¼Æ');
+            alert('æ•¸é‡å¿…é ˆç‚ºéè² æ•¸');
             return;
         }
-        const updatedProducts = products.map(product => product.°Ó«~½s¸¹ === productCode ? { ...product, ¼Æ¶q: numQuantity } : product
+        const updatedProducts = products.map(product => product.å•†å“ç·¨è™Ÿ === productCode ? { ...product, æ•¸é‡: numQuantity } : product
         );
         setProducts(updatedProducts);
         updateQuantity(productCode, numQuantity);
     };
-    //¤W¶Ç®Õ´Á
+    //ä¸Šå‚³æ ¡æœŸ
     const handleExpiryDateChange = (productCode, expiryDate) => {
-        const updatedProducts = products.map(product => product.°Ó«~½s¸¹ === productCode ? { ...product, ¨ì´Á¤é: expiryDate } : product
+        const updatedProducts = products.map(product => product.å•†å“ç·¨è™Ÿ === productCode ? { ...product, åˆ°æœŸæ—¥: expiryDate } : product
         );
 
         setProducts(updatedProducts);
@@ -251,78 +251,78 @@ const App = () => {
 
 
     const handleMouseEnter = (product, e) => {
-        setHoveredProduct(product.°Ó«~½s¸¹);
-        const initialStockItem = initialStockData[product.°Ó«~½s¸¹];
-        setInitialStock(initialStockItem ? initialStockItem.¼Æ¶q : 0);
-        setCurrentSpec(initialStockItem ? initialStockItem.³W®æ : '¥¼³]©w');
-        setCurrentunit(initialStockItem ? initialStockItem.³æ¦ì : '');
-        const rect = e.currentTarget.getBoundingClientRect(); // Àò¨ú·í«e°Ó«~¦æªºÃä¬É
+        setHoveredProduct(product.å•†å“ç·¨è™Ÿ);
+        const initialStockItem = initialStockData[product.å•†å“ç·¨è™Ÿ];
+        setInitialStock(initialStockItem ? initialStockItem.æ•¸é‡ : 0);
+        setCurrentSpec(initialStockItem ? initialStockItem.è¦æ ¼ : 'æœªè¨­å®š');
+        setCurrentunit(initialStockItem ? initialStockItem.å–®ä½ : '');
+        const rect = e.currentTarget.getBoundingClientRect(); // ç²å–ç•¶å‰å•†å“è¡Œçš„é‚Šç•Œ
 
-        setTooltipPosition({ top: e.clientY + 10, left: e.clientX + 10 }); // §ó·s¤u¨ã´£¥Ü¦ì¸m
+        setTooltipPosition({ top: e.clientY + 10, left: e.clientX + 10 }); // æ›´æ–°å·¥å…·æç¤ºä½ç½®
     };
 
     const handleMouseLeave = () => {
-        setHoveredProduct(null); // ²M°£Äa°±°Ó«~
-        setInitialStock(''); // ²M°£´Áªì®w¦s¼Æ¾Ú
-        setCurrentSpec(''); // ²M°£³W®æ¼Æ¾Ú
-        setCurrentunit(''); // ²M°£³æ¦ì¼Æ¾Ú
+        setHoveredProduct(null); // æ¸…é™¤æ‡¸åœå•†å“
+        setInitialStock(''); // æ¸…é™¤æœŸåˆåº«å­˜æ•¸æ“š
+        setCurrentSpec(''); // æ¸…é™¤è¦æ ¼æ•¸æ“š
+        setCurrentunit(''); // æ¸…é™¤å–®ä½æ•¸æ“š
     };
 
     const toggleFunctionButtons = () => {
-        setShowFunctionButtons(prev => !prev); // ¤Á´«·í«eª¬ºA
+        setShowFunctionButtons(prev => !prev); // åˆ‡æ›ç•¶å‰ç‹€æ…‹
     };
 
-    //¤@Áä§R°£³f¶q
+    //ä¸€éµåˆªé™¤è²¨é‡
     const handleClearQuantities = () => {
         const updatedProducts = products.map(product => ({
             ...product,
-            ¼Æ¶q: 0 // ±N©Ò¦³¼Æ¶q³]¸m¬° 0
+            æ•¸é‡: 0 // å°‡æ‰€æœ‰æ•¸é‡è¨­ç½®ç‚º 0
         }));
         setProducts(updatedProducts);
 
-        // µo°e½Ğ¨D¨ì«áºİ§ó·s¼Æ¾Ú®w
+        // ç™¼é€è«‹æ±‚åˆ°å¾Œç«¯æ›´æ–°æ•¸æ“šåº«
         products.forEach(product => {
-            handleQuantityChange(product.°Ó«~½s¸¹, 0); // °²³] updateQuantity ¨ç¼Æ³Q©w¸q¬°§ó·s¼Æ¶q
+            handleQuantityChange(product.å•†å“ç·¨è™Ÿ, 0); // å‡è¨­ updateQuantity å‡½æ•¸è¢«å®šç¾©ç‚ºæ›´æ–°æ•¸é‡
         });
     };
-    //¤@Áä§R°£¤é´Á
+    //ä¸€éµåˆªé™¤æ—¥æœŸ
     const handleClearExpiryDates = () => {
         const updatedProducts = products.map(product => ({
             ...product,
-            ¨ì´Á¤é: '' // ±N©Ò¦³¨ì´Á¤é³]¸m¬° null
+            åˆ°æœŸæ—¥: '' // å°‡æ‰€æœ‰åˆ°æœŸæ—¥è¨­ç½®ç‚º null
         }));
         setProducts(updatedProducts);
 
-        // µo°e½Ğ¨D¨ì«áºİ§ó·s¼Æ¾Ú®w¡G
+        // ç™¼é€è«‹æ±‚åˆ°å¾Œç«¯æ›´æ–°æ•¸æ“šåº«ï¼š
         products.forEach(product => {
-            handleExpiryDateChange(product.°Ó«~½s¸¹, ''); // °²³] updateExpiryDate ¨ç¼Æ³Q©w¸q¬°§ó·s¨ì´Á¤é
+            handleExpiryDateChange(product.å•†å“ç·¨è™Ÿ, ''); // å‡è¨­ updateExpiryDate å‡½æ•¸è¢«å®šç¾©ç‚ºæ›´æ–°åˆ°æœŸæ—¥
         });
     };
 
 
 
 
-    //¦X¨ÖÀÉ®×
-    // ¥D?¥ó
+    //åˆä½µæª”æ¡ˆ
+    // ä¸»ç»„ä»¶
     const handleFileChange = (event, key) => {
         const file = event.target.files[0];
         if (file) {
-            setFiles(prevFiles => ({ ...prevFiles, [key]: file })); // ½T«O§ó·s¥¿½Tªº¤å¥óª¬ºA
+            setFiles(prevFiles => ({ ...prevFiles, [key]: file })); // ç¢ºä¿æ›´æ–°æ­£ç¢ºçš„æ–‡ä»¶ç‹€æ…‹
         }
     };
 
     const uploadFiles = async () => {
-        // ?²z¤W?ªº¤å¥ó
+        // å¤„ç†ä¸Šä¼ çš„æ–‡ä»¶
         await processFiles(files);
-        setUploadModalOpen(false); // ????®Ø
+        setUploadModalOpen(false); // å…³é—­å¯¹è¯æ¡†
     };
-    // Åã¥Ü¿ù»~°T®§ªº Modal
+    // é¡¯ç¤ºéŒ¯èª¤è¨Šæ¯çš„ Modal
     const ErrorModal = ({ title, message }) => (
         <Modal isOpen={!!errorModal} title={title} message={message} onClose={() => setErrorModal(null)} type="error" />
     );
     return (
         <>
-            {/* ©T©wªº¼ĞÃD°Ï°ì */}
+            {/* å›ºå®šçš„æ¨™é¡Œå€åŸŸ */}
             <div className="inventory-header">
                 <div className="fixed-header">
                     <div className="header-container">
@@ -330,7 +330,7 @@ const App = () => {
                             <thead>
                                 <tr>
                                     <td colSpan="2">
-                                        <h1>®w¦s½LÂI¨t²Î</h1>
+                                        <h1>åº«å­˜ç›¤é»ç³»çµ±</h1>
                                         <div>
                                             <select value={storeName} onChange={handleStoreChange}>
                                                 {stores.map((store, index) => (
@@ -341,19 +341,19 @@ const App = () => {
                                         </div>
                                     </td>
                                     <td rowSpan="2" className="header-table.right">
-                                        <button className="header-button" onClick={() => setShowGuide(true)}>»¡©ú</button>
-                                        <button className="header-button" onClick={startInventory}>½LÂI¶}©l</button>
-                                        <button className="header-button" onClick={() => setIsNewProductModalOpen(true)}>·s¼W</button>
-                                        <button id="butter-code" className="header-button" onClick={() => setIsFilterModalOpen(true)}>¿z¿ï</button>
-                                        <button className="header-button" onClick={() => setIsArchiveModalOpen(true)}>ÂkÀÉ</button>
-                                        <button className="header-button" onClick={() => setIsExportModalOpen(true)}>¶×¥X</button>
+                                        <button className="header-button" onClick={() => setShowGuide(true)}>èªªæ˜</button>
+                                        <button className="header-button" onClick={startInventory}>ç›¤é»é–‹å§‹</button>
+                                        <button className="header-button" onClick={() => setIsNewProductModalOpen(true)}>æ–°å¢</button>
+                                        <button id="butter-code" className="header-button" onClick={() => setIsFilterModalOpen(true)}>ç¯©é¸</button>
+                                        <button className="header-button" onClick={() => setIsArchiveModalOpen(true)}>æ­¸æª”</button>
+                                        <button className="header-button" onClick={() => setIsExportModalOpen(true)}>åŒ¯å‡º</button>
                                         <br />
-                                        <button onClick={toggleFunctionButtons}>§ó¦h¥\¯à</button>
+                                        <button onClick={toggleFunctionButtons}>æ›´å¤šåŠŸèƒ½</button>
 
                                         {showFunctionButtons && (
                                             <>
-                                                <button onClick={handleClearQuantities}>¼Æ¶q²M°£</button>
-                                                <button onClick={handleClearExpiryDates}>¨ì´Á¤é²M°£</button>
+                                                <button onClick={handleClearQuantities}>æ•¸é‡æ¸…é™¤</button>
+                                                <button onClick={handleClearExpiryDates}>åˆ°æœŸæ—¥æ¸…é™¤</button>
                                             </>
                                         )}
 
@@ -362,7 +362,7 @@ const App = () => {
                                 </tr>
                                 <tr>
                                     <td colSpan="2" className="header-table.left" style={{ fontSize: '1em' }}>
-                                        {connectionStatus}&nbsp;&nbsp;|&nbsp;&nbsp;¦b½u¦@&nbsp;&nbsp;<strong>{userCount}</strong>&nbsp;&nbsp;¤H&nbsp;&nbsp;|&nbsp;&nbsp;<strong>{localVersion}</strong>
+                                        {connectionStatus}&nbsp;&nbsp;|&nbsp;&nbsp;åœ¨ç·šå…±&nbsp;&nbsp;<strong>{userCount}</strong>&nbsp;&nbsp;äºº&nbsp;&nbsp;|&nbsp;&nbsp;<strong>{localVersion}</strong>
                                     </td>
                                 </tr>
                             </thead>
@@ -371,15 +371,15 @@ const App = () => {
                         <div id="product-code">
                             <hr />
                             <div style={{ valign: 'top', textAlign: 'left', padding: '10', margin: '5' }}>
-                                <label>¡@¡@¡@<strong>¼t°Ó</strong>¡G</label>
+                                <label>ã€€ã€€ã€€<strong>å» å•†</strong>ï¼š</label>
                                 {allVendors.map(vendor => (
                                     <label key={vendor} className="filter-item">
                                         <input type="checkbox" checked={selectedVendors.includes(vendor)} onChange={() => handleVendorChange(vendor)} />
                                         {vendor}
                                     </label>
                                 ))}<br />
-                                <label>¡@¡@¡@<strong>®w§O</strong>¡G</label>
-                                {['§NÂÃ', '§N­á', '±`·Å', '²M¼ä', '³Æ«~'].map(layer => (
+                                <label>ã€€ã€€ã€€<strong>åº«åˆ¥</strong>ï¼š</label>
+                                {['å†·è—', 'å†·å‡', 'å¸¸æº«', 'æ¸…æ½”', 'å‚™å“'].map(layer => (
                                     <label key={layer} className="filter-item">
                                         <input type="checkbox" checked={selectedLayers.includes(layer)} onChange={() => handleLayerChange(layer)} />
                                         {layer}
@@ -400,28 +400,28 @@ const App = () => {
             <br />
             <br />
             <br />
-            {/* ©T©wªºªíÀY */}
+            {/* å›ºå®šçš„è¡¨é ­ */}
             <table className="in-table">
                 <thead>
                     <tr>
-                        <th id="½s¸¹" className="in-th">°Ó«~½s¸¹</th>
-                        <th className="in-th">°Ó«~¦WºÙ</th>
-                        <th className="in-th">¼Æ¶q</th>
-                        <th id="³æ¦ì" className="in-th">³æ¦ì</th>
-                        <th className="in-th">¨ì´Á¤é</th>
+                        <th id="ç·¨è™Ÿ" className="in-th">å•†å“ç·¨è™Ÿ</th>
+                        <th className="in-th">å•†å“åç¨±</th>
+                        <th className="in-th">æ•¸é‡</th>
+                        <th id="å–®ä½" className="in-th">å–®ä½</th>
+                        <th className="in-th">åˆ°æœŸæ—¥</th>
                     </tr>
                 </thead>
 
                 <tbody>
                     {filteredProducts.map((product, index) => (
-                        product.®w§O !== '¥¼¨Ï¥Î' && (
-                            <tr key={product.°Ó«~½s¸¹}>
-                                <td id="½s¸¹" className="in-td">{product.°Ó«~½s¸¹}</td>
-                                <td id="«~¦W" className="in-td" onMouseEnter={(e) => handleMouseEnter(product, e)} onMouseLeave={handleMouseLeave}>{product.°Ó«~¦WºÙ}</td>
-                                <td id="¼Æ¶q-¦æ" className="in-td" style={{ width: '80px' }}><label><input name="¼Æ¶q" type="number" value={product.¼Æ¶q} onChange={(e) => handleQuantityChange(product.°Ó«~½s¸¹, +e.target.value)} onKeyPress={event => handleKeyPress(event, index)} ref={el => inputRefs.current[index] = el} required /> &nbsp;&nbsp;{product.³æ¦ì}</label></td>
-                                <td id="¼Æ¶q-©T" className="in-td"><input name="¼Æ¶q" type="number" value={product.¼Æ¶q} onChange={(e) => handleQuantityChange(product.°Ó«~½s¸¹, +e.target.value)} onKeyPress={event => handleKeyPress(event, index)} ref={el => inputRefs.current[index] = el} required /></td>
-                                <td id="³æ¦ì" className="in-td">{product.³æ¦ì}</td>
-                                <td id="®Õ´Á" className="in-td"><input className='date' type="date" value={product.¨ì´Á¤é ? new Date(product.¨ì´Á¤é).toISOString().split('T')[0] : ""} onChange={(e) => handleExpiryDateChange(product.°Ó«~½s¸¹, e.target.value)} /*disabled={disabledVendors.includes(product.¼t°Ó)} */ /></td>
+                        product.åº«åˆ¥ !== 'æœªä½¿ç”¨' && (
+                            <tr key={product.å•†å“ç·¨è™Ÿ}>
+                                <td id="ç·¨è™Ÿ" className="in-td">{product.å•†å“ç·¨è™Ÿ}</td>
+                                <td id="å“å" className="in-td" onMouseEnter={(e) => handleMouseEnter(product, e)} onMouseLeave={handleMouseLeave}>{product.å•†å“åç¨±}</td>
+                                <td id="æ•¸é‡-è¡Œ" className="in-td" style={{ width: '80px' }}><label><input name="æ•¸é‡" type="number" value={product.æ•¸é‡} onChange={(e) => handleQuantityChange(product.å•†å“ç·¨è™Ÿ, +e.target.value)} onKeyPress={event => handleKeyPress(event, index)} ref={el => inputRefs.current[index] = el} required /> &nbsp;&nbsp;{product.å–®ä½}</label></td>
+                                <td id="æ•¸é‡-å›º" className="in-td"><input name="æ•¸é‡" type="number" value={product.æ•¸é‡} onChange={(e) => handleQuantityChange(product.å•†å“ç·¨è™Ÿ, +e.target.value)} onKeyPress={event => handleKeyPress(event, index)} ref={el => inputRefs.current[index] = el} required /></td>
+                                <td id="å–®ä½" className="in-td">{product.å–®ä½}</td>
+                                <td id="æ ¡æœŸ" className="in-td"><input className='date' type="date" value={product.åˆ°æœŸæ—¥ ? new Date(product.åˆ°æœŸæ—¥).toISOString().split('T')[0] : ""} onChange={(e) => handleExpiryDateChange(product.å•†å“ç·¨è™Ÿ, e.target.value)} /*disabled={disabledVendors.includes(product.å» å•†)} */ /></td>
                             </tr>
                         )))}
                 </tbody>
@@ -436,8 +436,8 @@ const App = () => {
                             <table className="table" style={{ margin: 5 }}>
                                 <tbody>
                                     <tr>
-                                        <th style={{ width: '80px', padding: '10', margin: '5' }}><h2>¼t°Ó</h2></th>
-                                        <th style={{ width: '80px', padding: '10', margin: '5' }}><h2>·Å¼h</h2></th>
+                                        <th style={{ width: '80px', padding: '10', margin: '5' }}><h2>å» å•†</h2></th>
+                                        <th style={{ width: '80px', padding: '10', margin: '5' }}><h2>æº«å±¤</h2></th>
                                     </tr>
                                     <tr>
                                         <td style={{ valign: 'top', textAlign: 'left', padding: '10', margin: '5' }}>
@@ -448,7 +448,7 @@ const App = () => {
                                                 </label></li>
                                             ))}</td>
                                         <td style={{ valign: 'top', textAlign: 'left', padding: '10', margin: '5' }}>
-                                            {['§NÂÃ', '§N­á', '±`·Å', '²M¼ä', '³Æ«~'].map(layer => (
+                                            {['å†·è—', 'å†·å‡', 'å¸¸æº«', 'æ¸…æ½”', 'å‚™å“'].map(layer => (
                                                 <li className="li"><label key={layer} className="filter-item">
                                                     <input type="checkbox" checked={selectedLayers.includes(layer)} onChange={() => handleLayerChange(layer)} />
                                                     {layer}
@@ -460,11 +460,11 @@ const App = () => {
                         </div>
 
                     </div>
-                    <button onClick={setIsFilterModalOpen(false)}>Ãö³¬</button>
+                    <button onClick={setIsFilterModalOpen(false)}>é—œé–‰</button>
                 </>
             )}
 
-            {/* ¸ü¤J´£¥Ü */}
+            {/* è¼‰å…¥æç¤º */}
             {loading && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255, 255, 255, 0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
                     <div>
@@ -472,72 +472,72 @@ const App = () => {
                     </div>
                 </div>
             )}
-            {/* Åã¥Ü¤u¨ã´£¥Ü */}
+            {/* é¡¯ç¤ºå·¥å…·æç¤º */}
             {hoveredProduct && (<div style={{ textAlign: 'left', fontSize: '12px', position: 'fixed', backgroundColor: 'white', border: '1px solid #ccc', padding: '5px', borderRadius: '5px', zIndex: 1000, top: tooltipPosition.top, left: tooltipPosition.left, }}>
-                ´Áªì®w¦s¶q¡G{products.´Áªì®w¦s}{currentunit}<br />
-                ³W®æ¡G{currentSpec} {/* Åã¥Ü³W®æ */}</div>
+                æœŸåˆåº«å­˜é‡ï¼š{products.æœŸåˆåº«å­˜}{currentunit}<br />
+                è¦æ ¼ï¼š{currentSpec} {/* é¡¯ç¤ºè¦æ ¼ */}</div>
             )}
 
             {/* <InventoryUploader isOpen={isInventoryUploaderOpen} onClose={() => setIsInventoryUploaderOpen(false)} products = { products } setProducts = { setProducts } />*/}
-            <InventoryUploader ref={inventoryUploaderRef} storeName={storeName} /> {/* ¶Ç»¼ storeName µ¹ InventoryUploader */}
+            <InventoryUploader ref={inventoryUploaderRef} storeName={storeName} /> {/* å‚³é storeName çµ¦ InventoryUploader */}
 
-            {/* µu¼È´£¥Ü */}
+            {/* çŸ­æš«æç¤º */}
             {showToast && (<div style={{ position: 'fixed', bottom: '20px', left: '20px', backgroundColor: '#4caf50', color: 'white', padding: '10px', borderRadius: '5px', boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)', zIndex: 1000, }}> {newMessage} </div>
             )}
-            {/* ¨Ï¥ÎNewProductModal */}
+            {/* ä½¿ç”¨NewProductModal */}
             <NewProductModal isOpen={isNewProductModalOpen} onClose={() => setIsNewProductModalOpen(false)} products={products} setProducts={setProducts} />
 
-            {/* ¨Ï¥ÎArchiveModal */}
+            {/* ä½¿ç”¨ArchiveModal */}
             <ArchiveModal isOpen={isArchiveModalOpen} onClose={() => setIsArchiveModalOpen(false)} products={products} />
 
-            {/* ¨Ï¥ÎExportModal */}
+            {/* ä½¿ç”¨ExportModal */}
             <ExportModal isOpen={isExportModalOpen} onClose={() => setIsExportModalOpen(false)} products={products} />
 
 
-            {/* ¨Ï¥ÎGuideModal */}
+            {/* ä½¿ç”¨GuideModal */}
             {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
 
             <Modal isOpen={isModalOpen} title={modalContent.title} message={modalContent.message} onClose={() => setIsModalOpen(false)} type={modalContent.type} />
-            {/* ·sª©¥» */}
+            {/* æ–°ç‰ˆæœ¬ */}
             {isModalOpen && (
                 <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                         <h2>{modalContent.title}</h2>
                         <p>{modalContent.message}</p>
-                        <button onClick={handleOnline}>­«¾ã­¶­±</button>
+                        <button onClick={handleOnline}>é‡æ•´é é¢</button>
                     </div>
                 </div>
             )}
 
 
 
-            <ErrorModal title={errorModal?.title} message={errorModal?.message} /> {/* Åã¥Ü¿ù»~°T®§ Modal */}
+            <ErrorModal title={errorModal?.title} message={errorModal?.message} /> {/* é¡¯ç¤ºéŒ¯èª¤è¨Šæ¯ Modal */}
 
 
-            {/* Åã¥ÜÂ÷½u´£¥Ü */}
+            {/* é¡¯ç¤ºé›¢ç·šæç¤º */}
             {isOffline && (
                 <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, }}>
                     <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
-                        <h2>±z¤wÂ÷½u</h2>
-                        <p>½ĞÀË¬dºô¸ô³s½u¬O§_¥¿±`¡C</p>
-                        <button onClick={() => window.location.reload()}>­«·s¾ã²z</button>
+                        <h2>æ‚¨å·²é›¢ç·š</h2>
+                        <p>è«‹æª¢æŸ¥ç¶²è·¯é€£ç·šæ˜¯å¦æ­£å¸¸ã€‚</p>
+                        <button onClick={() => window.location.reload()}>é‡æ–°æ•´ç†</button>
                     </div>
                 </div>
 
             )}
 
-            {/* ¶¢¸m´£¥Ü®Ø¡AÅã¥Ü­«·s¤W½u«ö¶s */}
+            {/* é–’ç½®æç¤ºæ¡†ï¼Œé¡¯ç¤ºé‡æ–°ä¸Šç·šæŒ‰éˆ• */}
             {isReconnectPromptVisible && (
                 <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, }}>
                     <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
-                        <h2>¶¢¸m¤¤Â_½u</h2>
-                        <p>±z¤w¶¢¸m¶W¹L10¤ÀÄÁ¡A½Ğ­«·s³s±µ¡C</p>
-                        <button onClick={handleReconnect}>­«·s¤W½u</button>
+                        <h2>é–’ç½®ä¸­æ–·ç·š</h2>
+                        <p>æ‚¨å·²é–’ç½®è¶…é10åˆ†é˜ï¼Œè«‹é‡æ–°é€£æ¥ã€‚</p>
+                        <button onClick={handleReconnect}>é‡æ–°ä¸Šç·š</button>
                     </div>
                 </div>
             )}
             <footer style={{ position: 'fixed', bottom: '0', left: '0', right: '0', textAlign: 'center', padding: '3px', backgroundColor: '#f5f5f5', borderTop: '1px solid #ccc' }}>
-                <p style={{ margin: '0px' }}>? 2024 edc-pws.com. All rights reserved.</p>
+                <p style={{ margin: '0px' }}>Â© 2024 edc-pws.com. All rights reserved.</p>
             </footer>
 
         </>

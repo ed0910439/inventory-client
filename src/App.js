@@ -13,7 +13,7 @@ import BouncyComponent from './components/BouncyComponent';
 import InventoryUploader from './components/InventoryUploader';
 import { setCookie, getCookie } from './utils/cookie';
 import './components/style/Modal.css'; // 導入 Modal 的 CSS 樣式
-const socket = io('http://localhost:4000'); //  連線到 Socket.IO 伺服器
+const socket = io('https://inventory.edc-pws.com'); //  連線到 Socket.IO 伺服器
 
 const App = () => {
     // 狀態變數
@@ -57,7 +57,7 @@ const App = () => {
                     throw new Error('請選擇門市！'); // 檢查 storeName 為空
                 }
 
-                const response = await axios.get(`http://localhost:4000/api/products/${storeName}`);
+                const response = await axios.get(`https://inventory.edc-pws.com/api/products/${storeName}`);
                 if (response.status === 400) {
                     // 當未選擇商店狀況
                     setLoading(false);
@@ -190,7 +190,7 @@ const App = () => {
     //下載最新數量
     const updateQuantity = async (productCode, quantity) => {
         try {
-            await axios.put(`http://localhost:4000/api/products/${productCode}/quantity/${storeName}`, { 數量: quantity });
+            await axios.put(`https://inventory.edc-pws.com/api/products/${productCode}/${storeName}/quantity`, { 數量: quantity });
         } catch (error) {
             console.error("更新產品時出錯:", error);
         }
@@ -198,7 +198,7 @@ const App = () => {
     //下載最新校期
     const updateExpiryDate = async (productCode, expiryDate) => {
         try {
-            await axios.put(`http://localhost:4000/api/products/${productCode}/expiryDate/${storeName}`, { 到期日: expiryDate });
+            await axios.put(`https://inventory.edc-pws.com/api/products/${productCode}/${storeName}/expiryDate`, { 到期日: expiryDate });
         } catch (error) {
             console.error("更新到期日時出錯:", error);
         }
