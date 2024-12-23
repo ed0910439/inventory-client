@@ -52,13 +52,10 @@ const App = () => {
 
         const fetchProducts = async () => {
             setLoading(true);
-            try {
-                if (!storeName) {
-                    throw new Error('請選擇門市！'); // 檢查 storeName 為空
-                }
+            try {
 
                 const response = await axios.get(`https://inventory.edc-pws.com/api/products/${storeName}`);
-                if (response.status === 400) {
+                if (response.status === 204) {
                     // 當未選擇商店狀況
                     setLoading(false);
                     setIsOffline(null);
