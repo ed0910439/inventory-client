@@ -58,7 +58,7 @@ const App = () => {
                 if (response.status === 204) {
                     // 當未選擇商店狀況
                     setLoading(false);
-                    setIsOffline(null);
+                    setIsOffline(false);
                     return;
                 } else if (response.status === 200) {
                     setProducts(response.data);
