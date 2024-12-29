@@ -32,17 +32,19 @@ const InventoryUploader = forwardRef((props, ref) => {
     useImperativeHandle(ref, () => ({
         startInventory: handleStartInventory
     }));
+setCheckingConnections(true);
 
     const handleStartInventory = async () => {
         setCheckProgress('正在檢查門市資訊...');
         await delay(1500); // 等待1秒
 
-        if (props.storeName === 'noStart') {
-            console.error('Store name is required');
-            return;
+        if (!storeName) {
+                Swal.fire('錯誤', '請選擇門市！', 'error'); // 驗證 storeName
+                return;
+            }else{
+setCheckProgress('門市檢查通過...');
+            await delay(500); // 等待1秒
         }
-        setCheckingConnections(true);
-
         try {
             setCheckProgress('正在檢查伺服器連接...');
             await delay(1000); // 等待1秒
@@ -68,12 +70,8 @@ const InventoryUploader = forwardRef((props, ref) => {
 
         // 確認連線後的操作
         if (serverConnected === false || eposConnected === false) {
-            setModalContent({
-                title: '錯誤',
-                message: '無法開始盤點，因為有主機離線。',
-                type: 'error',
-            });
-            setIsModalOpen(true);
+Swal.fire('錯誤', '無法開始盤點，因為有主機離線。', 'error');
+    
             return;
         }
         setLoading(true);
@@ -87,12 +85,7 @@ const InventoryUploader = forwardRef((props, ref) => {
                 庫別: ''
             })));
         } catch (error) {
-            setModalContent({
-                title: '錯誤',
-                message: '取得盤點模板時發生錯誤！', 
-                type: 'error',
-            });
-            setIsModalOpen(true);
+Swal.fire('錯誤', '取得盤點模板時發生錯誤', 'error');
         } finally {
             setLoading(false);
         }
@@ -135,12 +128,8 @@ const InventoryUploader = forwardRef((props, ref) => {
 
         try {
             await axios.post(`https://inventory.edc-pws.com/api/saveCompletedProducts/${props.storeName}`, preparedProducts);
-            setModalContent({
-                title: '成功',
-                message: '數據保存成功！正在刷新盤點數據。',
-                type: 'success',
-            });
-            setIsModalOpen(true);
+Swal.fire('成功', 數據保存成功！正在刷新數據庫，刷新後請重新選擇門市。', 'success');
+            
 
             // 延遲3秒後刷新頁面
             setTimeout(() => {
@@ -149,12 +138,8 @@ const InventoryUploader = forwardRef((props, ref) => {
                 window.location.reload();
             }, 3000);
         } catch (error) {
-            setModalContent({
-                title: '錯誤',
-                message: '產品數據保存失敗！',
-                type: 'error',
-            });
-            setIsModalOpen(true);
+Swal.fire('錯誤', '產品數據保存失敗！', 'error');
+           
         }
     };
     return (
