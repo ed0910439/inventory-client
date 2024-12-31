@@ -2,7 +2,16 @@
 h1, h2 {
     margin: 0;
 }
-
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: auto; /* 確保高度隨內容自動變化 */
+    background: white; /* 背景色 */
+    /* 其他樣式 */
+    z-index: 1000; /* 保證在最上層 */
+}
 body {
     font-family: "Chocolate Classical Sans", sans-serif;
     font-weight: normal;
@@ -88,7 +97,7 @@ input {
     border: groove;
     border-width: 1px;
     border-color: #666666;
-    height: 20px;
+
     padding: 0.5px;
 }
     input[type="checkbox"] {
@@ -100,15 +109,17 @@ input {
 
     
     
-    input#year {
+    
+    input#year-input {
+        width: 60px;
+        text-align: right;
+    }
+    input#month-input {
         width: 60px;
         text-align: right;
     }
 
-    input[type="number"] {
-        width: 40px;
-        text-align: right;
-    }
+
 
     input[type="date"] {
         width: 100px;

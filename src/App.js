@@ -2,9 +2,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import io from 'socket.io-client';
-import modalContent from './components/ConfirmModal'; // 引入確認模組
+import Swal from 'sweetalert2'
 import ExportModal from './components/ExportModal';
-import NewProductModal from './components/NewProductModal';
 import ArchiveModal from './components/ArchiveModal';
 import GuideModal from './components/GuideModal';
 import Modal from './components/Modal';
@@ -13,10 +12,13 @@ import BouncyComponent from './components/BouncyComponent';
 import InventoryUploader from './components/InventoryUploader';
 import { setCookie, getCookie } from './utils/cookie';
 import './components/style/Modal.css'; // 導入 Modal 的 CSS 樣式
-const socket = io('https://inventory.edc-pws.com'); //  連線到 Socket.IO 伺服器
+const apiUrl = process.env.REACT_APP_API_URL;
+const socket = io(`${apiUrl}`); //  連線到 Socket.IO 伺服器
 
 const App = () => {
     // 狀態變數
+    const [archivePassword, setArchivePassword] = useState(''); // 存儲歸檔密碼
+
     const [showFunctionButtons, setShowFunctionButtons] = useState(false);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -40,42 +42,72 @@ const App = () => {
     const [currentSpec, setCurrentSpec] = useState(''); // 用於存儲規格
     const [currentunit, setCurrentunit] = useState(''); // 用於存儲單位
     const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
-
+    const [modalContent, setModalContent] = useState({});
     const [userCount, setUserCount] = useState(0);
+    const archiveModalRef = useRef();
     const inventoryUploaderRef = useRef();
-    const [storeName, setStoreName] = useState('noStart');
+    const [storeName, setStoreName] = useState('新店京站');
     const allVendors = ['全台', '央廚', '王座-備', '王座-食', '忠欣', '開元', '裕賀', '美食家', '點線麵'];
     const allLayers = ['未使用', '冷藏', '冷凍', '常温', '清潔', '備品'];
     const stores = ['台北京站', '新店京站', '信義威秀'];
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    const Toast = Swal.mixin({
+    toast: true,
+    position: "top-end",
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+        toast.onmouseenter = Swal.stopTimer;
+        toast.onmouseleave = Swal.resumeTimer;
+    }
+});
+
     // 產品數據加載函數
+
     useEffect(() => {
+
 
         const fetchProducts = async () => {
             setLoading(true);
-            try {
+            await delay(500); // 等待1秒
 
-                const response = await axios.get(`https://inventory.edc-pws.com/api/products/${storeName}`);
-                if (response.status === 204) {
+            try {
+                const response = await axios.get(`${apiUrl}/api/products/${storeName}`);
+
+                if (response.status === 100) {
                     // 當未選擇商店狀況
-                    setLoading(false);
-                    setIsOffline(false);
-                    return;
-                } else if (response.status === 200) {
-                    setProducts(response.data);
-                    setLoading(false);
                     setIsOffline(false); // 確保網路狀態正確
+                    setLoading(false);
+                } else {
+                    if (response.data.length === 0) {
+                        setIsOffline(false); // 確保網路狀態正確
+                        setLoading(false);
+                        setProducts([]);
+                        Swal.fire({
+                title: '錯誤',
+                text: `無法盤點，因為尚未開始。`,
+                showCancelButton: true,
+                showConfirmButton: true,
+                confirmButtonText: '開始盤點',
+                cancelButtonText: '關閉',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // 選擇了 EPOS 格式
+                    startInventory();
+                } 
+            });
+                    
+                    } else {
+                        setProducts(response.data);
+                        setIsOffline(false); // 確保網路狀態正確
+                    }
                 }
-            } catch (error) {
-                handleError(error, '取得產品失敗'); // 使用新的錯誤處理函式
-                setIsOffline(true);
-                setLoading(false);
             } finally {
                 setLoading(false);
             }
         };
-        if (storeName) {
-            fetchProducts(); // 調用 fetchProducts 函數
-        }
+
 
         const guideShown = getCookie(cookieName); // 檢查 cookie 是否存在
         if (!guideShown) {
@@ -86,29 +118,39 @@ const App = () => {
             }, 1000);
         }
 
- 
+        if (storeName) {
+            socket.emit('joinStoreRoom', storeName);
+        }
+        // 當 storeName 更改時，發送用戶加入房間
         // Socket.IO 事件監聽
         socket.on('updateUserCount', setUserCount);
         socket.on('productUpdated', (updatedProduct) => {
-            setProducts(prevProducts => prevProducts.map(product => product.商品編號 === updatedProduct.商品編號 ? updatedProduct : product
-            ));
-            setNewMessage(`${updatedProduct.商品名稱} 數量變更為 ${updatedProduct.數量}`);
-            setShowToast(true);
-            setTimeout(() => setShowToast(false), 4000);
-        });
+    setProducts(prevProducts => 
+        prevProducts.map(product => 
+            product.商品編號 === updatedProduct.商品編號 ? updatedProduct : product
+        )
+    );
+
+    // 使用 SweetAlert toast 代替傳統消息
+    Toast.fire({
+        icon: 'success',
+        title: `${updatedProduct.商品名稱} 數量變更為 ${updatedProduct.數量}`
+    });
+});                    
+        fetchProducts(); // 調用 fetchProducts 函數`
 
         // 網路連線狀態監聽 (需要根據瀏覽器環境調整)
         const handleOnline = () => {
-            setConnectionStatus('連線成功 ✔');
+            Swal.fire('通知', '連線成功', 'success');
             setIsOffline(false);
         };
         const handleOffline = () => {
-            setConnectionStatus('失去連線 ❌');
+            Swal.fire('通知', '失去連線', 'warning');
             setIsOffline(true);
         };
+
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
-
         // 清除函式
         return () => {
             socket.off('updateUserCount', setUserCount);
@@ -116,24 +158,22 @@ const App = () => {
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
             socket.disconnect();
-        };
+        };   
     }, [storeName]);
+ 
+const handleStoreChange = (event) => {
+    const newStoreName = event.target.value;
+    setStoreName(newStoreName);
+    socket.emit('joinStoreRoom', newStoreName); // 加入相應的房間
+};
 
-    const handleStoreChange = (event) => {
-        setStoreName(event.target.value);
-    };
 
     const startInventory = () => {
-        // 要先確認 storeName 是否有值
-        if (!storeName) {
-            alert('請選擇門市！'); // 將儲存改為直接提示用戶
-            return;
-        }
-
         if (inventoryUploaderRef.current) {
             inventoryUploaderRef.current.startInventory(); // 調用子組件的方法
         }
     };
+
 
     // 錯誤處理函式
     const handleError = (error, defaultMessage) => {
@@ -141,6 +181,7 @@ const App = () => {
         setErrorModal({ title: '錯誤訊息', message: errorMessage });
         setIsModalOpen(true);
     };
+
 
     const handleReconnect = () => {
         setConnectionStatus('連接成功 ✔');
@@ -187,7 +228,7 @@ const App = () => {
     //下載最新數量
     const updateQuantity = async (productCode, quantity) => {
         try {
-            await axios.put(`https://inventory.edc-pws.com/api/products/${productCode}/${storeName}/quantity`, { 數量: quantity });
+            await axios.put(`${apiUrl}/api/products/${storeName}/${productCode}/quantity`, { 數量: quantity });
         } catch (error) {
             console.error("更新產品時出錯:", error);
         }
@@ -195,11 +236,12 @@ const App = () => {
     //下載最新校期
     const updateExpiryDate = async (productCode, expiryDate) => {
         try {
-            await axios.put(`https://inventory.edc-pws.com/api/products/${productCode}/${storeName}/expiryDate`, { 到期日: expiryDate });
+            await axios.put(`${apiUrl}/api/products/${storeName}/${productCode}/expiryDate`, { 到期日: expiryDate });
         } catch (error) {
             console.error("更新到期日時出錯:", error);
         }
     };
+
     //上傳數量
     const handleQuantityChange = (productCode, quantity) => {
         // 輸入驗證: 確保數量為非負數
@@ -224,9 +266,7 @@ const App = () => {
     };
 
     const handleMouseEnter = (product, e) => {
-        setInitialStock
         setHoveredProduct(product.商品編號);
-
         // 直接使用 product 來設置初始庫存、規格和單位
         setInitialStock(product.期初庫存 ? `${product.期初庫存} ${product.單位}` : '查無歷史盤點紀錄');
         setCurrentSpec(product.規格 ? product.規格 : '未設定');
@@ -242,6 +282,19 @@ const App = () => {
         setCurrentSpec('');
         setCurrentunit('');
     };
+
+
+    const openArchiveModal = () => {
+        setIsArchiveModalOpen(true); // 打开模态框
+    };
+
+    const closeArchiveModal = () => {
+        setIsArchiveModalOpen(false); // 关闭模态框
+    };
+
+
+
+
     return (
         <>
             <div className="inventory-header">
@@ -254,7 +307,8 @@ const App = () => {
                                 </td>
 
                                 <td rowSpan="2">
-                                    <select value={storeName} onChange={handleStoreChange}>
+                                    <select value={storeName} onChange={handleStoreChange} disabled>
+                                        <option value="" disabled>請選擇門市</option>
                                         {stores.map((store, index) => (
                                             <option key={index} value={store}>{store}</option>
                                         ))}
@@ -264,11 +318,8 @@ const App = () => {
                                     <button className="header-button" onClick={startInventory}>盤點開始</button>
 
                                     <button className="header-button" onClick={() => setShowGuide(true)}>說明</button>
-                                    <button className="header-button" onClick={() => setIsArchiveModalOpen(true)}>歸檔</button>
+                                    <button className="header-button" onClick={openArchiveModal}>歸檔</button>
                                     <button className="header-button" onClick={() => setIsExportModalOpen(true)}>匯出</button>
-                                    <br />
-                                    <button style={{ marginTop: '5px' }} className="header-button" onClick={() => console.log('清除數量')}>清除數據</button>
-
                                 </td>
                             </tr>
                             <tr>
@@ -309,10 +360,13 @@ const App = () => {
 
                 </div>
             </div>
+            <div style={{ height: '27.7vh' }} ></div>
 
             {/* 下半框架 - 產品資料顯示及重載功能 */}
             <div id="product-code-bottom">
-                <form autoComplete = 'no'>
+
+                <form autoComplete='no'>
+
                 <table className="in-table">
                     <thead>
                         <tr>
@@ -329,8 +383,8 @@ const App = () => {
                                 <tr key={product.商品編號}>
                                     <td id="編號" className="in-td">{product.商品編號}</td>
                                     <td id="品名" className="in-td" onMouseEnter={(e) => handleMouseEnter(product, e)} onMouseLeave={handleMouseLeave}>{product.商品名稱}</td>
-                                    <td id="數量-行" className="in-td" style={{ width: '80px' }}><label><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyPress={event => handleKeyPress(event, index)} ref={el => inputRefs.current[index] = el} required /> &nbsp;&nbsp;{product.單位}</label></td>
-                                    <td id="數量-固" className="in-td"><input name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyPress={event => handleKeyPress(event, index)} ref={el => inputRefs.current[index] = el} required /></td>
+                                    <td id="數量-行" className="in-td" style={{ width: '80px' }}><label><input input className="input-number" name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyPress={event => handleKeyPress(event, index)} ref={el => inputRefs.current[index] = el} required /> &nbsp;&nbsp;{product.單位}</label></td>
+                                    <td id="數量-固" className="in-td"><input className="input-number" name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyPress={event => handleKeyPress(event, index)} ref={el => inputRefs.current[index] = el} required /></td>
                                     <td id="單位" className="in-td">{product.單位}</td>
                                     <td id="校期" className="in-td"><input className='date' type="date" value={product.到期日 ? new Date(product.到期日).toISOString().split('T')[0] : ""} onChange={(e) => handleExpiryDateChange(product.商品編號, e.target.value)} /*disabled={disabledVendors.includes(product.廠商)} */ /></td>
                                 </tr>
@@ -343,10 +397,23 @@ const App = () => {
             {/* 其他 Modal 與提示框 */}
             {/* <InventoryUploader isOpen={isInventoryUploaderOpen} onClose={() => setIsInventoryUploaderOpen(false)} products = { products } setProducts = { setProducts } />*/}
             <InventoryUploader ref={inventoryUploaderRef} storeName={storeName} /> {/* 傳遞 storeName 給 InventoryUploader */}
-            <ArchiveModal isOpen={isArchiveModalOpen} onClose={() => setIsArchiveModalOpen(false)} products={products} />
-            <ExportModal isOpen={isExportModalOpen} onClose={() => setIsExportModalOpen(false)} products={products} />
-            {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
-            <Modal isOpen={isModalOpen} title={modalContent.title} message={modalContent.message} onClose={() => setIsModalOpen(false)} type={modalContent.type} />
+            {/* 儲存歷史商品資料 */}
+
+            
+                {/* 使用 SweetAlert2 獲取密碼後打開 ArchiveModal */}
+            <ArchiveModal 
+                isOpen={isArchiveModalOpen} 
+                onClose={closeArchiveModal} 
+                products={products} 
+                storeName={storeName} 
+            />
+
+            <ExportModal 
+    isOpen={isExportModalOpen} 
+    onClose={() => setIsExportModalOpen(false)} 
+    products={products} 
+/>
+            <GuideModal isOpen={showGuide} onClose={() => setShowGuide(false)} />}
             {/* 顯示工具提示 */}
             {hoveredProduct && (<div style={{ textAlign: 'left', fontSize: '12px', position: 'fixed', backgroundColor: 'white', border: '1px solid #ccc', padding: '5px', borderRadius: '5px', zIndex: 1000, top: tooltipPosition.top, left: tooltipPosition.left, }}>
                 期初存量：{initialStock} <br />
@@ -355,17 +422,17 @@ const App = () => {
             )}
             {/* 顯示載入提示*/}
             {loading && (
-                    <BouncyComponent />
-               
-            )} 
-
-            {/* 短暫提示 */}
-            {showToast && (
-                <div style={{ position: 'fixed', bottom: '20px', left: '20px', backgroundColor: '#4caf50', color: 'white', padding: '10px', borderRadius: '5px', boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)', zIndex: 1000 }}>
-                    {newMessage}
+                <div><BouncyComponent />
                 </div>
-            )}
 
+            )} 
+            <Modal
+                isOpen={isModalOpen}
+                title={modalContent.title}
+                message={modalContent.message}
+                type={modalContent.type}
+                onClose={() => setIsModalOpen(false)}
+            />
             {/* 顯示錯誤訊息的 Modal */}
             {errorModal && (
                 <Modal

@@ -27,7 +27,7 @@ const NewProductModal = ({ isOpen, onClose, products, setProducts }) => {
                 商品編號: `新 - ${nextNumber}`,
             };
 
-            const response = await axios.post(`https://inventory.edc-pws.com/api/products`, newProductWithNumber);
+            const response = await axios.post(`http://localhost:4000/api/products`, newProductWithNumber);
             setProducts([...products, response.data]); // 更新產品列表
 			onClose(); // 提交後關閉模態框
             setNewProduct({

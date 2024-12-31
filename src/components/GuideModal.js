@@ -1,18 +1,20 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import Swal from 'sweetalert2';
 
 const GuideModal = ({ isOpen, onClose }) => {
-    return (
-
-        
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" id="style-3" onClick={(e) => e.stopPropagation()}>
-               <h1>庫存盤點系統使用手冊</h1>
-               <br />
+    useEffect(() => {
+        if (isOpen) {
+            // 當模態框開啟時，顯示 SweetAlert2 彈窗
+            Swal.fire({
+                title: "庫存盤點系統使用手冊",
+                width: 'calc(100% - 20%)',
+                html: `
+                    <div style="overflow-y: auto; max-height: 60vh;">
                 <h2>系統介紹</h2>
                 <p>庫存盤點系統是一個用於查詢和管理庫存商品的 Web 應用程序。通過該系統，使用者可以於盤點作業時輕鬆查看商品期初庫存、更新庫存數量、匯出盤點單以直接上傳至公司內部系統，無須轉檔。</p>
 
                 <h2>功能概述</h2>
-                <ul style={{textAlign:'left'}}>
+                <ul style="text-align:left; ">
                     <li><strong>商品管理</strong>：查看所有庫存商品的詳細信息，包括商品編號、名稱、規格、期初存量、單位、廠商及溫層等。</li>
                     <li><strong>更新庫存數量</strong>：在數量欄位輸入新的庫存量，並支持 <code>Enter</code> 鍵以快速跳至下一個輸入框。</li>
                     <li><strong>導出數據</strong>：用戶可以匯出當前的庫存資料到 Excel 文件，提供一般格式及 EPOS 上傳格式。</li>
@@ -23,7 +25,7 @@ const GuideModal = ({ isOpen, onClose }) => {
                 </ul>
 
                 <h2>功能說明</h2>
-                <div style={{ textAlign: 'left', padding:'0 30px' }}>
+                <div style:" text-align:left; padding:0px 30px;" }}>
 
                 <h3>1. 登入系統</h3>
                 <p>系統目前無需登入，直接進入系統首頁即可開始使用。</p>
@@ -56,14 +58,14 @@ const GuideModal = ({ isOpen, onClose }) => {
 </div>
                 <h2>多人同步功能</h2>
                 <h3>系統支持多人同時線上作業，數據將實時推送至所有用戶端。</h3>
-                <ul style={{textAlign:'left'}}>
+                <ul style:"text-align left">
                     <li>使用 WebSocket 技術 (socket.io) 實現即時數據更新。</li>
                     <li>當一名用戶更新商品庫存，其他連線用戶將即時收到更新通知，並看到最新的庫存信息。</li>
                     <li>網路連線斷線時，系統會顯示覆蓋全螢幕的半透明訊息，提醒用戶網路連線問題及解決方案，並建議聯絡管理員。</li>
                 </ul>
 
                 <h2>常見問題</h2>
-                <ol style={{textAlign:'left'}}>
+                <ol style:"text-align:left;">
                     <li><strong>如何導出產品庫存數據？</strong>
                         <ul>
                             <li>點擊「匯出」按鈕，選擇匯出格式，並輸入必要的資料 (如年份、月份)，即可下載當前庫存數據。</li>
@@ -92,14 +94,17 @@ const GuideModal = ({ isOpen, onClose }) => {
                     </li>
                 </ol>
 
-                <p>如有任何疑問，請聯繫系統管理員。</p>
-                <button onClick={onClose}>關閉</button>
-                        </div>
-                    </div>
+                <p>如有任何疑問，請聯繫系統管理員。</p></div>
+                `,
+                focusConfirm: false,
+                showCloseButton: true,
+            }).then(() => {
+                onClose(); // 用戶關閉模態框
+            });
+        }
+    }, [isOpen, onClose]);
 
-
-    );
+    return null; // 此組件本身不需渲染任何 UI
 };
-
 
 export default GuideModal;

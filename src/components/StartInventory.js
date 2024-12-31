@@ -35,7 +35,7 @@ function StartInventory({ isOpen, onClose }) {
         formData.append('initialStockData', initialStockData);
 
         try {
-            const response = await axios.post(`https://inventory.edc-pws.com/api/startInventory`, formData, {
+            const response = await axios.post(`http://localhost:4000/api/startInventory`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }

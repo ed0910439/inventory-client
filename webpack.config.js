@@ -8,7 +8,7 @@ module.exports = {
 
   // 输出设置
   output: {
-    path: path.resolve(__dirname, 'build'), // 输出目录
+    path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js', // 输出文件名称
     publicPath: '/'       // 用于路由处理
   },
