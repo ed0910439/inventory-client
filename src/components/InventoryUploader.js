@@ -35,24 +35,25 @@ const InventoryUploader = forwardRef((props, ref) => {
     useImperativeHandle(ref, () => ({
         startInventory: handleStartInventory
     }));
-setCheckingConnections(true);
 
     const handleStartInventory = async () => {
         setCheckProgress('正在檢查門市資訊...');
         await delay(1500); // 等待1秒
+
         if (props.storeName === '') {
             console.error('Store name is required');
             Swal.fire('錯誤', '請先選擇門市。', 'error');
 
             return;
-
         }
+        setCheckingConnections(true);
+
         try {
             setCheckProgress('正在檢查伺服器連接...');
             await delay(1000); // 等待1秒
 
             // 檢查伺服器連接狀態
-            const serverResponse = await axios.get(`${apiUrl}/api/checkConnections`);
+            const serverResponse = await axios.get(`https://inventory.edc-pws.com/api/checkConnections`);
             setServerConnected(serverResponse.data.serverConnected);
             console.log('Server status:', serverResponse.data.serverConnected);
 
@@ -60,7 +61,7 @@ setCheckingConnections(true);
             await delay(1000); // 再次等待1秒
 
             // 檢查 EPOS 主機連接狀態
-            const eposResponse = await axios.get(`${apiUrl}/api/ping`);
+            const eposResponse = await axios.get(`https://inventory.edc-pws.com/api/ping`);
             setEposConnected(eposResponse.data.eposConnected);
             console.log('EPOS status:', eposResponse.data.eposConnected);
 
@@ -73,12 +74,11 @@ setCheckingConnections(true);
         // 確認連線後的操作
         if (serverConnected === false || eposConnected === false) {
             Swal.fire('錯誤', '無法開始盤點，因為有主機離線。', 'error');
-
             return;
         }
         setLoading(true);
         try {
-            const response = await axios.get(`${apiUrl}/api/startInventory/${props.storeName}`);
+            const response = await axios.get(`https://inventory.edc-pws.com/api/startInventory/${props.storeName}`);
             setFirstNewProducts(response.data);
             setCompletedProducts(response.data.map(product => ({
                 ...product,
@@ -88,7 +88,6 @@ setCheckingConnections(true);
             })));
         } catch (error) {
             Swal.fire('錯誤', '取得盤點模板時發生錯誤！', 'error');
-
         } finally {
             setLoading(false);
         }
@@ -130,7 +129,7 @@ setCheckingConnections(true);
         }));
 
         try {
-            await axios.post(`${apiUrl}/api/saveCompletedProducts/${props.storeName}`, preparedProducts);
+            await axios.post(`https://inventory.edc-pws.com/api/saveCompletedProducts/${props.storeName}`, preparedProducts);
             Swal.fire('成功', '數據保存成功！正在刷新盤點數據。', 'success');
             // 延遲3秒後刷新頁面
             setTimeout(() => {
@@ -140,7 +139,6 @@ setCheckingConnections(true);
             }, 3000);
         } catch (error) {
             Swal.fire('錯誤', '產品數據保存失敗！', 'error');
-
         }
     };
     return (

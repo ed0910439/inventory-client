@@ -61,7 +61,7 @@ const ArchiveModal = forwardRef(({ isOpen, onClose, products, storeName }, ref) 
 
 const toArchive = async () => {
     try {
-        const response = await axios.post(`${apiUrl}/api/archive/${storeName}`, { password: 'Dcz423008' },{    headers: {
+        const response = await axios.post(`https://inventory.edc-pws.com/api/archive/${storeName}`, { password: 'Dcz423008' },{    headers: {
       'Content-Type': 'application/json',
     }});
         await exportToExcel(products, year, adjustedMonth, true);
