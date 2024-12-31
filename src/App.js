@@ -361,7 +361,6 @@ const handleStoreChange = (event) => {
             </div>
             <div style={{ height: '27.7vh' }} ></div>
 
-            {/* 下半框架 - 產品資料顯示及重載功能 */}
             <div id="product-code-bottom">
 
                 <form autoComplete='no'>
@@ -394,12 +393,8 @@ const handleStoreChange = (event) => {
             </div>
 
             {/* 其他 Modal 與提示框 */}
-            {/* <InventoryUploader isOpen={isInventoryUploaderOpen} onClose={() => setIsInventoryUploaderOpen(false)} products = { products } setProducts = { setProducts } />*/}
-            <InventoryUploader ref={inventoryUploaderRef} storeName={storeName} /> {/* 傳遞 storeName 給 InventoryUploader */}
-            {/* 儲存歷史商品資料 */}
+            <InventoryUploader ref={inventoryUploaderRef} storeName={storeName} /> 
 
-            
-                {/* 使用 SweetAlert2 獲取密碼後打開 ArchiveModal */}
             <ArchiveModal 
                 isOpen={isArchiveModalOpen} 
                 onClose={closeArchiveModal} 
@@ -421,8 +416,7 @@ const handleStoreChange = (event) => {
             )}
             {/* 顯示載入提示*/}
             {loading && (
-                <div><BouncyComponent />
-                </div>
+                <div><BouncyComponent /></div>
 
             )} 
             <Modal
