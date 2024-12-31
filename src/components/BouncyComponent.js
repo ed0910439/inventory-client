@@ -11,7 +11,7 @@ const BouncyComponent = () => {
                     <img className="car" src='/images/car.svg' alt="Car" />
                     <img className="poof" src='/images/poof.svg' alt="Poof" />
                     <img className="sign" src='/images/sign.svg' alt="Sign" />
-                    <em>¸ü¤J¤¤...</em>
+                    <em>è¼‰å…¥ä¸­...</em>
                 </div>
             </div>
 
