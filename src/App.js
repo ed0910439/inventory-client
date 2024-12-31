@@ -69,7 +69,7 @@ const App = () => {
 
         const fetchProducts = async () => {
             setLoading(true);
-            await delay(500); // 等待1秒
+            await delay(500); // 等待0.5秒
 
             try {
                 const response = await axios.get(`https://inventory.edc-pws.com/api/products/${storeName}`);
