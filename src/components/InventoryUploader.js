@@ -40,21 +40,12 @@ setCheckingConnections(true);
     const handleStartInventory = async () => {
         setCheckProgress('正在檢查門市資訊...');
         await delay(1500); // 等待1秒
-
-<<<<<<< HEAD
         if (props.storeName === '') {
             console.error('Store name is required');
             Swal.fire('錯誤', '請先選擇門市。', 'error');
 
             return;
-=======
-        if (!storeName) {
-                Swal.fire('錯誤', '請選擇門市！', 'error'); // 驗證 storeName
-                return;
-            }else{
-setCheckProgress('門市檢查通過...');
-            await delay(500); // 等待1秒
->>>>>>> e32e198432aebc39a1c7871c3882711bb1edea26
+
         }
         try {
             setCheckProgress('正在檢查伺服器連接...');
@@ -81,12 +72,8 @@ setCheckProgress('門市檢查通過...');
 
         // 確認連線後的操作
         if (serverConnected === false || eposConnected === false) {
-<<<<<<< HEAD
             Swal.fire('錯誤', '無法開始盤點，因為有主機離線。', 'error');
-=======
-Swal.fire('錯誤', '無法開始盤點，因為有主機離線。', 'error');
-    
->>>>>>> e32e198432aebc39a1c7871c3882711bb1edea26
+
             return;
         }
         setLoading(true);
@@ -100,11 +87,8 @@ Swal.fire('錯誤', '無法開始盤點，因為有主機離線。', 'error');
                 庫別: ''
             })));
         } catch (error) {
-<<<<<<< HEAD
             Swal.fire('錯誤', '取得盤點模板時發生錯誤！', 'error');
-=======
-Swal.fire('錯誤', '取得盤點模板時發生錯誤', 'error');
->>>>>>> e32e198432aebc39a1c7871c3882711bb1edea26
+
         } finally {
             setLoading(false);
         }
@@ -146,15 +130,8 @@ Swal.fire('錯誤', '取得盤點模板時發生錯誤', 'error');
         }));
 
         try {
-<<<<<<< HEAD
             await axios.post(`${apiUrl}/api/saveCompletedProducts/${props.storeName}`, preparedProducts);
             Swal.fire('成功', '數據保存成功！正在刷新盤點數據。', 'success');
-=======
-            await axios.post(`https://inventory.edc-pws.com/api/saveCompletedProducts/${props.storeName}`, preparedProducts);
-Swal.fire('成功', 數據保存成功！正在刷新數據庫，刷新後請重新選擇門市。', 'success');
-            
-
->>>>>>> e32e198432aebc39a1c7871c3882711bb1edea26
             // 延遲3秒後刷新頁面
             setTimeout(() => {
                 setCompletedProducts([]);
@@ -162,12 +139,8 @@ Swal.fire('成功', 數據保存成功！正在刷新數據庫，刷新後請重
                 window.location.reload();
             }, 3000);
         } catch (error) {
-<<<<<<< HEAD
             Swal.fire('錯誤', '產品數據保存失敗！', 'error');
-=======
-Swal.fire('錯誤', '產品數據保存失敗！', 'error');
-           
->>>>>>> e32e198432aebc39a1c7871c3882711bb1edea26
+
         }
     };
     return (
