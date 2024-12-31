@@ -7,6 +7,7 @@ import ExportModal from './components/ExportModal';
 import ArchiveModal from './components/ArchiveModal';
 import GuideModal from './components/GuideModal';
 import Modal from './components/Modal';
+import Calculator from './components/Calculator';
 import FilterModal from './components/FilterModal';
 import BouncyComponent from './components/BouncyComponent';
 import InventoryUploader from './components/InventoryUploader';
@@ -46,6 +47,8 @@ const App = () => {
     const archiveModalRef = useRef();
     const inventoryUploaderRef = useRef();
     const [storeName, setStoreName] = useState('新店京站');
+    const [showCalculator, setShowCalculator] = useState(false);
+    const [currentProductCode, setCurrentProductCode] = useState(null);
     const allVendors = ['全台', '央廚', '王座-備', '王座-食', '忠欣', '開元', '裕賀', '美食家', '點線麵'];
     const allLayers = ['未使用', '冷藏', '冷凍', '常温', '清潔', '備品'];
     const stores = ['台北京站', '新店京站', '信義威秀'];
@@ -291,7 +294,16 @@ const handleStoreChange = (event) => {
         setIsArchiveModalOpen(false); // 关闭模态框
     };
 
+    const handleQuantityClick = (productCode) => {
+        setCurrentProductCode(productCode);
+        setShowCalculator(true); // 顯示計算機
+    };
 
+    const handleCalculate = (result) => {
+        // 將計算結果帶入數量欄位
+        handleQuantityChange(currentProductCode, result);
+        setShowCalculator(false); // 隱藏計算機
+    };
 
 
     return (
@@ -381,8 +393,8 @@ const handleStoreChange = (event) => {
                                 <tr key={product.商品編號}>
                                     <td id="編號" className="in-td">{product.商品編號}</td>
                                     <td id="品名" className="in-td" onMouseEnter={(e) => handleMouseEnter(product, e)} onMouseLeave={handleMouseLeave}>{product.商品名稱}</td>
-                                    <td id="數量-行" className="in-td" style={{ width: '80px' }}><label><input input className="input-number" name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyPress={event => handleKeyPress(event, index)} ref={el => inputRefs.current[index] = el} required /> &nbsp;&nbsp;{product.單位}</label></td>
-                                    <td id="數量-固" className="in-td"><input className="input-number" name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyPress={event => handleKeyPress(event, index)} ref={el => inputRefs.current[index] = el} required /></td>
+                                    <td id="數量-行" className="in-td" style={{ width: '80px' }} onClick={() => handleQuantityClick(product.商品編號)}><label><input input className="input-number" name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyPress={event => handleKeyPress(event, index)} ref={el => inputRefs.current[index] = el} required /> &nbsp;&nbsp;{product.單位}</label></td>
+                                    <td id="數量-固" className="in-td" onClick={() => handleQuantityClick(product.商品編號)}><input className="input-number" name="數量" type="number" value={product.數量} onChange={(e) => handleQuantityChange(product.商品編號, +e.target.value)} onKeyPress={event => handleKeyPress(event, index)} ref={el => inputRefs.current[index] = el} required /></td>
                                     <td id="單位" className="in-td">{product.單位}</td>
                                     <td id="校期" className="in-td"><input className='date' type="date" value={product.到期日 ? new Date(product.到期日).toISOString().split('T')[0] : ""} onChange={(e) => handleExpiryDateChange(product.商品編號, e.target.value)} /*disabled={disabledVendors.includes(product.廠商)} */ /></td>
                                 </tr>
@@ -390,6 +402,8 @@ const handleStoreChange = (event) => {
                     </tbody>
                 </table>
                 </form>
+                                {showCalculator && <Calculator onCalculate={handleCalculate} />} {/* 顯示計算機 */}
+
             </div>
 
             {/* 其他 Modal 與提示框 */}

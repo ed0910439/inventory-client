@@ -1,0 +1,21 @@
+.floating-calculator {
+    position: fixed; /* 使用固定定位以保持在頁面上 */
+    top: 20%; /* 根據需要調整位置 */
+    right: 20%; /* 根據需要調整位置 */
+    background-color: white; /* 背景顏色 */
+    border: 1px solid #ccc; /* 邊框 */
+    border-radius: 8px; /* 圓角 */
+    padding: 20px; /* 內邊距 */
+    box-shadow: 0 0 10px rgba(0,0,0,0.2); /* 陰影 */
+    z-index: 1000; /* 確保位於其他元素之上 */
+}
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+}

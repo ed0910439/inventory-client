@@ -17,5 +17,5 @@ if (!isOpen) return null;
                     </div>
                 </div>
             )
-			}
+			};
 			export default UserOfflineModal;
